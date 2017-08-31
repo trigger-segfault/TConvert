@@ -236,6 +236,7 @@ namespace TConvert.Extract {
 					reader.Close();
 					return true;
 				}
+			case "ReLogic.Graphics.DynamicSpriteFontReader":
 			case "Microsoft.Xna.Framework.Content.SpriteFontReader":
 			case "Microsoft.Xna.Framework.Content.EffectReader": {
 					// Not supported
