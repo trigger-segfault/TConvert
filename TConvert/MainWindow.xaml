@@ -1,0 +1,179 @@
+﻿<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TConvert"
+        xmlns:System="clr-namespace:System;assembly=mscorlib" x:Class="TConvert.MainWindow"
+        mc:Ignorable="d"
+        Title="TConvert" Height="310" Width="450" ResizeMode="CanMinimize" SnapsToDevicePixels="True" UseLayoutRounding="True" Loaded="OnWindowLoaded" Background="#FFF0F0F0" Icon="App.ico" AllowDrop="True" Drop="OnFileDrop" DragEnter="OnFileDropEnter" DragLeave="OnFileDropLeave" Closing="OnClosing">
+    <Window.Resources>
+        <Style x:Key="ButtonImageDisablable" TargetType="{x:Type Image}">
+            <Style.Triggers>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Opacity" Value="0.5" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+    <DockPanel LastChildFill="True" Margin="0">
+        <Menu DockPanel.Dock="Top" x:Name="menu" BorderThickness="0,0,0,1" BorderBrush="#FF919395">
+            <Menu.Background>
+                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
+                    <GradientStop Color="#FFECEEF1" Offset="0"/>
+                    <GradientStop Color="#FFD6D9DC" Offset="0.852"/>
+                    <GradientStop Color="#FFE6E8EB" Offset="1"/>
+                </LinearGradientBrush>
+            </Menu.Background>
+            <MenuItem Header="File">
+                <MenuItem Header="Launch Terraria" Click="OnLaunchTerraria">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/TerrariaIcon.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Open Terraria Folder" Click="OnOpenTerrariaFolder">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/Browse.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator/>
+                <MenuItem Header="Exit" Click="OnExit">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/Exit.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Options">
+                <MenuItem x:Name="menuItemAutoCloseProgress" Header="Auto-Close Progress" Click="OnAutoCloseProgress" IsCheckable="True">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/CloseProgress.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem x:Name="menuItemAutoCloseDropProgress" Header="Auto-Close Drop Progress" Click="OnAutoCloseDropProgress" IsCheckable="True">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/CloseDropProgress.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+            <MenuItem Header="Help">
+                <MenuItem Header="About" Click="OnAbout">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/About.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Help" Click="OnHelp">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/Help.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Credits" Click="OnCredits">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/Credits.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="View on GitHub" Click="OnViewOnGitHub">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/GitHub.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
+            </MenuItem>
+        </Menu>
+        <Grid>
+        <TextBox x:Name="textBoxTerrariaContent" Height="23" Margin="20,31,51,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" IsReadOnly="True" ScrollViewer.CanContentScroll="True"/>
+        <Button HorizontalAlignment="Right" Margin="0,31,20,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnBrowseTerraria">
+            <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False"/>
+        </Button>
+        <Label x:Name="label" Content="Terraria's Content Folder" HorizontalAlignment="Left" Margin="20,5,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+        <TabControl x:Name="tabControl" Margin="5,65,5,5" SelectionChanged="OnTabChanged">
+            <TabItem Header="Extract">
+                <Grid Background="#FFF9F9F9">
+                    <Label Content="Extract Mode" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                    <ComboBox x:Name="comboBoxExtractMode" HorizontalAlignment="Left" Margin="100,12,0,0" VerticalAlignment="Top" Width="100" SelectedIndex="0" SelectionChanged="OnExtractModeChanged">
+                        <System:String>Folder</System:String>
+                        <System:String>File</System:String>
+                    </ComboBox>
+
+                    <Label x:Name="labelExtractInput" Content="Input Folder" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                    <TextBox x:Name="textBoxExtractInput" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" IsReadOnly="True" ScrollViewer.CanContentScroll="True"/>
+                    <Button HorizontalAlignment="Right" Margin="0,47,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnExtractChangeInput">
+                        <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
+                    </Button>
+                    <Label x:Name="labelExtractOutput" Content="Output Folder" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                    <TextBox x:Name="textBoxExtractOutput" Height="23" Margin="100,80,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" IsReadOnly="True" ScrollViewer.CanContentScroll="True"/>
+                    <Button x:Name="buttonExtractOutput" HorizontalAlignment="Right" Margin="0,80,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnExtractChangeOutput">
+                        <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
+                    </Button>
+
+                    <CheckBox x:Name="checkBoxExtractImages" Content="Images" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnExtractImagesChecked"/>
+                    <CheckBox x:Name="checkBoxExtractSounds" Content="Sounds" HorizontalAlignment="Left" Margin="80,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnExtractSoundsChecked"/>
+                    <CheckBox x:Name="checkBoxExtractWaveBank" Content="Wave Bank" HorizontalAlignment="Left" Margin="151,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnExtractWaveBankChecked"/>
+                    <Button x:Name="buttonExtract" Content="Extract" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnExtract"/>
+                    <CheckBox x:Name="checkBoxExtractUseInput" Content="Use Input as Output" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" Click="OnExtractUseInputChecked"/>
+                    <Button x:Name="buttonExtractUseTerraria" Content="Use Terraria" HorizontalAlignment="Right" Margin="0,12,90,0" VerticalAlignment="Top" Width="100" Click="OnExtractUseTerraria"/>
+
+                </Grid>
+            </TabItem>
+            <TabItem Header="Convert">
+                <Grid Background="#FFF9F9F9">
+                    <Label Content="Convert Mode" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                    <ComboBox x:Name="comboBoxConvertMode" HorizontalAlignment="Left" Margin="100,12,0,0" VerticalAlignment="Top" Width="100" SelectedIndex="0" SelectionChanged="OnConvertModeChanged">
+                        <System:String>Folder</System:String>
+                        <System:String>File</System:String>
+                    </ComboBox>
+
+                    <Label x:Name="labelConvertInput" Content="Input Folder" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                    <TextBox x:Name="textBoxConvertInput" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" IsReadOnly="True" ScrollViewer.CanContentScroll="True"/>
+                    <Button HorizontalAlignment="Right" Margin="0,47,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnConvertChangeInput">
+                        <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
+                    </Button>
+                    <Label x:Name="labelConvertOutput" Content="Output Folder" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                    <TextBox x:Name="textBoxConvertOutput" Height="23" Margin="100,80,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" IsReadOnly="True" ScrollViewer.CanContentScroll="True"/>
+                    <Button x:Name="buttonConvertOutput" HorizontalAlignment="Right" Margin="0,80,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnConvertChangeOutput">
+                        <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
+                    </Button>
+
+                    <Button x:Name="buttonConvert" Content="Convert" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnConvert"/>
+                    <CheckBox x:Name="checkBoxConvertUseInput" Content="Use Input as Output" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" Click="OnConvertUseInputChecked"/>
+                    <Button x:Name="buttonConvertUseTerraria" Content="Use Terraria" HorizontalAlignment="Right" Margin="0,12,90,0" VerticalAlignment="Top" Width="100" Click="OnConvertUseTerraria"/>
+                    <CheckBox x:Name="checkBoxConvertImages" Content="Images" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnConvertImagesChecked"/>
+                    <CheckBox x:Name="checkBoxConvertSounds" Content="Sounds" HorizontalAlignment="Left" Margin="80,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnConvertSoundsChecked"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Backup">
+                <Grid Background="#FFF9F9F9">
+
+                    <Label Content="Content Folder" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                    <TextBox x:Name="textBoxContent" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" IsReadOnly="True" ScrollViewer.CanContentScroll="True"/>
+                    <Button HorizontalAlignment="Right" Margin="0,47,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnBackupChangeContent">
+                        <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
+                    </Button>
+                    <Label Content="Backup Folder" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                    <TextBox x:Name="textBoxBackup" Height="23" Margin="100,80,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" IsReadOnly="True" ScrollViewer.CanContentScroll="True"/>
+                    <Button HorizontalAlignment="Right" Margin="0,80,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnBackupChangeBackup">
+                        <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
+                    </Button>
+
+                    <Button Content="Backup" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnBackup"/>
+                    <Button Content="Restore" HorizontalAlignment="Right" Margin="0,12,90,0" VerticalAlignment="Top" Width="75" Click="OnRestore"/>
+                    <Button Content="Use Terraria" HorizontalAlignment="Right" Margin="0,12,170,0" VerticalAlignment="Top" Width="100" Click="OnBackupUseTerraria"/>
+                    <Label Content="Backup or Restore" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Script">
+                <Grid Background="#FFF9F9F9">
+                    <Label Content="Run an Extract, Convert, or Restore Script" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+
+                    <Label Content="Script File" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                    <TextBox x:Name="textBoxScript" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" IsReadOnly="True" ScrollViewer.CanContentScroll="True"/>
+                    <Button HorizontalAlignment="Right" Margin="0,47,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnScriptChange">
+                        <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
+                    </Button>
+
+                    <Button x:Name="buttonScript" Content="Run Script" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnRunScript"/>
+                </Grid>
+            </TabItem>
+        </TabControl>
+        <Label x:Name="labelDrop" AllowDrop="True" Margin="0" BorderBrush="#FF8C8E94" BorderThickness="0" Background="#CCF9F9F9" IsHitTestVisible="True" Content="Extract or Convert Files" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontSize="18" Visibility="Hidden"/>
+        </Grid>
+    </DockPanel>
+</Window>

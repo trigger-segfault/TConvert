@@ -1,0 +1,16 @@
+﻿<Window x:Class="TConvert.Windows.TriggerMessageBox"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Height="148" Width="406" ResizeMode="NoResize" WindowStartupLocation="CenterOwner" Loaded="OnWindowLoaded" ShowInTaskbar="False" Icon="/TExtractCS;component/Resources/Icons/Empty.png">
+    <Grid>
+        <Rectangle Fill="#FFF0F0F0" Height="49" Margin="0" VerticalAlignment="Bottom" StrokeThickness="0"/>
+        <Button x:Name="button1" Content="Yes" HorizontalAlignment="Right" Margin="0,0,180,12" VerticalAlignment="Bottom" Width="75"  Focusable="False" IsTabStop="False" Click="OnButtonClicked"/>
+
+        <Button x:Name="button2" Content="No" HorizontalAlignment="Right" Margin="0,0,95,12" VerticalAlignment="Bottom" Width="75"  Focusable="False" IsTabStop="False" Click="OnButtonClicked"/>
+        <Button x:Name="button3" Content="Cancel" HorizontalAlignment="Right" Margin="0,0,10,12" VerticalAlignment="Bottom" Width="75"  Focusable="False" IsTabStop="False" Click="OnButtonClicked"/>
+        <Label x:Name="labelMessage" Margin="18,27,18,0" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Padding="0">
+            <TextBlock x:Name="textBlockMessage"  TextWrapping="WrapWithOverflow" Text="Message" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+        </Label>
+
+    </Grid>
+</Window>
