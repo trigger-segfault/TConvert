@@ -57,6 +57,7 @@ namespace TConvert {
 				path = GetProperDirectoryCapitalization(new DirectoryInfo(path));
 				if (path.Length >= 2 && path[1] == ':') {
 					path = char.ToUpper(path[0]) + path.Substring(1);
+					return path;
 				}
 			}
 			return null;
