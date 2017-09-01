@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:TConvert.Windows"
         mc:Ignorable="d"
         Height="350" Width="500" WindowStartupLocation="CenterOwner" 
-        Title="Error Log" Icon="/TExtractCS;component/Resources/Icons/AppError.ico" ShowInTaskbar="False" MinWidth="500" MinHeight="350">
+        Title="Error Log" Icon="/Resources/Icons/AppError.ico" ShowInTaskbar="False" MinWidth="500" MinHeight="350">
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="175*"/>

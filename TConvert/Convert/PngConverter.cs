@@ -23,6 +23,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media.Imaging;
 using TConvert.Util;
 
 namespace TConvert.Convert {
@@ -70,6 +71,10 @@ namespace TConvert.Convert {
 			writer.Write(bmp.Height);
 			writer.Write((int)1);
 			writer.Write(bmp.Width * bmp.Height * 4);
+			if (bmp.PixelFormat != PixelFormat.Format32bppArgb) {
+				Bitmap newBmp = new Bitmap(bmp);
+				bmp = newBmp.Clone(new Rectangle(0, 0, newBmp.Width, newBmp.Height), PixelFormat.Format32bppArgb);
+			}
 			BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
 			try {
 				var length = bitmapData.Stride * bitmapData.Height;
@@ -82,6 +87,9 @@ namespace TConvert.Convert {
 				}
 				writer.Write(bytes);
 			}
+			catch (Exception ex) {
+				throw ex;
+			}
 			finally {
 				bmp.UnlockBits(bitmapData);
 			}
@@ -91,35 +99,30 @@ namespace TConvert.Convert {
 			if (changeExtension) {
 				outputFile = Path.ChangeExtension(outputFile, ".xnb");
 			}
-			Bitmap bmp;
 			if (!Directory.Exists(Path.GetDirectoryName(inputFile))) {
 				throw new DirectoryNotFoundException("Could not find a part of the path '" + inputFile + "'.");
 			}
-			//try {
-				bmp = new Bitmap(inputFile);
-			/*}
-			catch (ArgumentException ex) {
-				throw new FileNotFoundException("Could not find the specified file.", ex);
-			}*/
-			using (FileStream stream = new FileStream(outputFile, FileMode.OpenOrCreate, FileAccess.Write)) {
-				using (BinaryWriter writer = new BinaryWriter(stream)) {
-					writer.Write(Encoding.UTF8.GetBytes("XNB"));    // format-identifier
-					writer.Write(Encoding.UTF8.GetBytes("w"));      // target-platform
-					writer.Write((byte)5);                          // xnb-format-version
-					byte flagBits = 0;
-					if (!reach) {
-						flagBits |= 0x01;
-					}
-					if (compressed) {
-						flagBits |= 0x80;
-					}
-					writer.Write(flagBits); // flag-bits; 00=reach, 01=hiprofile, 80=compressed, 00=uncompressed
-					if (compressed) {
-						WriteCompressedData(writer, bmp);
-					}
-					else {
-						writer.Write(MetadataSize + bmp.Width * bmp.Height * 4); // compressed file size
-						WriteData(bmp, writer);
+			using (Bitmap bmp = new Bitmap(inputFile)) {
+				using (FileStream stream = new FileStream(outputFile, FileMode.OpenOrCreate, FileAccess.Write)) {
+					using (BinaryWriter writer = new BinaryWriter(stream)) {
+						writer.Write(Encoding.UTF8.GetBytes("XNB"));    // format-identifier
+						writer.Write(Encoding.UTF8.GetBytes("w"));      // target-platform
+						writer.Write((byte)5);                          // xnb-format-version
+						byte flagBits = 0;
+						if (!reach) {
+							flagBits |= 0x01;
+						}
+						if (compressed) {
+							flagBits |= 0x80;
+						}
+						writer.Write(flagBits); // flag-bits; 00=reach, 01=hiprofile, 80=compressed, 00=uncompressed
+						if (compressed) {
+							WriteCompressedData(writer, bmp);
+						}
+						else {
+							writer.Write(MetadataSize + bmp.Width * bmp.Height * 4); // compressed file size
+							WriteData(bmp, writer);
+						}
 					}
 				}
 			}

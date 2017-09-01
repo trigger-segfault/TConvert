@@ -15,16 +15,6 @@ using System.Windows.Shapes;
 
 namespace TConvert.Windows {
 
-	public struct LogError {
-		public bool IsWarning;
-		public string Message;
-		public string Reason;
-		public LogError(bool isWarning, string message, string reason) {
-			IsWarning = isWarning;
-			Message = message;
-			Reason = reason;
-		}
-	}
 	/// <summary>
 	/// Interaction logic for ErrorLogWindow.xaml
 	/// </summary>

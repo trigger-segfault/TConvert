@@ -153,6 +153,7 @@ namespace TConvert.Extract {
 		}
 
 		public void Reset() {
+			
 			table.Fill((short)0);
 			length.Fill((byte)0);
 		}

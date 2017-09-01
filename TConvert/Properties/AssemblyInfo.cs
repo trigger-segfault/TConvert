@@ -8,7 +8,11 @@ using System.Windows;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("TConvert")]
+#if !(CONSOLE)
 [assembly: AssemblyDescription("TConvert - A combination tool for Terraria content resources.")]
+#else
+[assembly: AssemblyDescription("TConvert Console - A combination tool for Terraria content resources.")]
+#endif
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Trigger's Tools & Games")]
 [assembly: AssemblyProduct("TConvert")]

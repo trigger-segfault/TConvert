@@ -24,6 +24,7 @@ namespace TConvert {
 		public static Tabs CurrentTab { get; set; }
 		public static bool AutoCloseProgress { get; set; }
 		public static bool AutoCloseDropProgress { get; set; }
+		public static bool AutoCloseCmdProgress { get; set; }
 
 		#endregion
 		//=========== CLASSES ============
@@ -134,6 +135,7 @@ namespace TConvert {
 			CurrentTab = tab;
 			AutoCloseProgress = Settings.Default.AutoCloseProgress;
 			AutoCloseDropProgress = Settings.Default.AutoCloseDropProgress;
+			AutoCloseCmdProgress = Settings.Default.AutoCloseCmdProgress;
 
 			Extract.FolderInput = Settings.Default.ExtractFolderInput;
 			Extract.FolderOutput = Settings.Default.ExtractFolderOutput;
@@ -174,6 +176,7 @@ namespace TConvert {
 			Settings.Default.CurrentTab = CurrentTab.ToString();
 			Settings.Default.AutoCloseProgress = AutoCloseProgress;
 			Settings.Default.AutoCloseDropProgress = AutoCloseDropProgress;
+			Settings.Default.AutoCloseCmdProgress = AutoCloseCmdProgress;
 
 			Settings.Default.ExtractFolderInput = Extract.FolderInput;
 			Settings.Default.ExtractFolderOutput = Extract.FolderOutput;

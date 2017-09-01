@@ -14,7 +14,7 @@ namespace TConvert {
 		/**<summary>The path of the error log.</summary>*/
 		public static readonly string LogPath = Path.Combine(
 			Path.GetDirectoryName(Assembly.GetEntryAssembly().Location),
-			"T-ErrorLog.txt"
+			"TConvert-ErrorLog.txt"
 		);
 
 		#endregion

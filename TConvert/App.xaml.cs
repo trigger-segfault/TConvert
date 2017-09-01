@@ -26,6 +26,39 @@ namespace TConvert {
 		}
 
 		#endregion
+		//============= MAIN =============
+		#region Main
+
+		/*[STAThread]
+		static void Main(string[] args) {
+			if (args.Length > 0) {
+				App app = new App();
+				app.InitializeComponent();
+				app.Run();
+				CommandLine.ParseCommand(args);
+			}
+			if (args.Length == 0) {
+				App.Current.MainWindow = new MainWindow();
+				App.Current.MainWindow.Show();
+			}
+		}*/
+		/*public new void Run() {
+			string[] args = Environment.GetCommandLineArgs();
+			commandLine = new Thread(() => {
+				Thread.Sleep(100);
+				CommandLine.ParseCommand(args);
+			});
+			if (args.Length > 0) {
+				commandLine.Start();
+			}
+			base.Run();
+			/*if (args.Length == 0) {
+				MainWindow = new MainWindow();
+				MainWindow.Show();
+			}
+		}*/
+
+		#endregion
 		//============ EVENTS ============
 		#region Events
 
@@ -33,9 +66,18 @@ namespace TConvert {
 			// Catch exceptions not in a UI thread
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(OnAppDomainUnhandledException);
 			TaskScheduler.UnobservedTaskException += OnTaskSchedulerUnobservedTaskException;
+			if (e.Args.Length > 0) {
+				//CommandLine.ParseCommand(e.Args);
+				CommandLine.ProcessFiles();
+			}
+			else if (e.Args.Length > 0) {
+				//this.MainWindow = new MainWindow();
+				//this.MainWindow.Show();
+			}
 		}
 		private void OnAppExit(object sender, ExitEventArgs e) {
 			Ffmpeg.Cleanup();
+			//Environment.Exit(Environment.ExitCode);
 		}
 		private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e) {
 			if (e.Exception != lastException) {

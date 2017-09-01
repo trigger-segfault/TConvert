@@ -54,6 +54,11 @@
                         <Image Source="Resources/Icons/CloseDropProgress.png"/>
                     </MenuItem.Icon>
                 </MenuItem>
+                <MenuItem x:Name="menuItemAutoCloseCmdProgress" Header="Auto-Close Cmd Progress" Click="OnAutoCloseCmdProgress" IsCheckable="True">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/CloseCmdProgress.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
             </MenuItem>
             <MenuItem Header="Help">
                 <MenuItem Header="About" Click="OnAbout">

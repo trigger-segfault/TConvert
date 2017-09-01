@@ -12,40 +12,61 @@ using System.Xml;
 using TConvert.Convert;
 using TConvert.Extract;
 using TConvert.Util;
+#if !(CONSOLE)
 using TConvert.Windows;
+#endif
 
 namespace TConvert {
+	public struct LogError {
+		public bool IsWarning;
+		public string Message;
+		public string Reason;
+		public LogError(bool isWarning, string message, string reason) {
+			IsWarning = isWarning;
+			Message = message;
+			Reason = reason;
+		}
+	}
 	public class Script {
 		public List<PathIOPair> Backups;
 		public List<PathIOPair> Restores;
 		public List<PathIOPair> Extracts;
 		public List<PathIOPair> Converts;
 	}
+	public enum ProcessModes {
+		Any,
+		Extract,
+		Convert,
+		Backup,
+		Restore,
+		Script
+	}
 	public static class Program {
-
-
 		//=========== MEMBERS ============
 		#region Members
 
-		private static readonly TimeSpan UpdateSpan = TimeSpan.FromMilliseconds(50);
+		private static TimeSpan UpdateSpan = TimeSpan.FromMilliseconds(50);
 		private static DateTime lastUpdate = DateTime.MinValue;
 
 		private static int totalFiles = 0;
 		private static int filesCompleted = 0;
-
+		#if !(CONSOLE)
 		private static ProgressWindow progressWindow;
-
 		private static bool autoCloseProgress;
+		private static bool console = false;
+		#endif
 
-		public static MainWindow MainWindow;
-
-		public static List<LogError> errorLog = new List<LogError>();
+		private static List<LogError> errorLog = new List<LogError>();
+		private static DateTime startTime;
+		private static bool silent;
 
 		#endregion
 		//=========== PROGRESS ===========
 		#region Progress
 
+		#if !(CONSOLE)
 		public static void StartProgressThread(Window owner, string message, bool autoClose, Thread thread) {
+			console = false;
 			lastUpdate = DateTime.MinValue;
 			autoCloseProgress = autoClose;
 			filesCompleted = 0;
@@ -55,12 +76,44 @@ namespace TConvert {
 				progressWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 				progressWindow.Owner = owner;
 			}
+			if (Application.Current.MainWindow == null)
+				Application.Current.MainWindow = progressWindow;
 			progressWindow.ShowDialog();
 			progressWindow = null;
 			filesCompleted = 0;
 			totalFiles = 0;
 		}
+		#endif
+		public static void StartConsoleThread(string message, bool silent, Thread thread) {
+			#if !(CONSOLE)
+			console = true;
+			#endif
+			Program.silent = silent;
+			UpdateSpan = TimeSpan.FromMilliseconds(50);
+			startTime = DateTime.Now;
+			lastUpdate = DateTime.MinValue;
+			filesCompleted = 0;
+			totalFiles = 0;
+			if (!silent) {
+				if (!Console.IsOutputRedirected) {
+					Console.Clear();
+					Console.SetCursorPosition(0, 0);
+				}
+				Console.WriteLine("Time: " + (DateTime.Now - startTime).ToString(@"m\:ss"));
+				Console.WriteLine(message);
+			}
+			thread.Start();
+			thread.Join();
+			filesCompleted = 0;
+			totalFiles = 0;
+			if (!silent)
+				Console.WriteLine();
+			#if !(CONSOLE)
+			Console.Write("Press enter to continue...");
+			#endif
+		}
 		public static void UpdateProgress(string message, bool forceUpdate = false) {
+			#if !(CONSOLE)
 			if (progressWindow != null) {
 				if (lastUpdate + UpdateSpan < DateTime.Now || forceUpdate) {
 					progressWindow.Dispatcher.Invoke(() => {
@@ -69,8 +122,22 @@ namespace TConvert {
 					lastUpdate = DateTime.Now;
 				}
 			}
+			else if (console)
+			#endif
+			{
+				if ((lastUpdate + UpdateSpan < DateTime.Now || forceUpdate) && !silent) {
+					if (!Console.IsOutputRedirected) {
+						Console.Clear();
+						Console.SetCursorPosition(0, 0);
+					}
+					Console.WriteLine("Time: " + (DateTime.Now - startTime).ToString(@"m\:ss"));
+					Console.WriteLine(message);
+					lastUpdate = DateTime.Now;
+				}
+			}
 		}
 		public static void FinishProgress(string message, bool final = true) {
+			#if !(CONSOLE)
 			if (progressWindow != null) {
 				progressWindow.Dispatcher.Invoke(() => {
 					progressWindow.Finish(message, final && autoCloseProgress);
@@ -83,25 +150,57 @@ namespace TConvert {
 					}
 				}
 			}
+			else if (console)
+			#endif
+			{
+				if (!silent) {
+					if (!Console.IsOutputRedirected) {
+						Console.Clear();
+						Console.SetCursorPosition(0, 0);
+					}
+					Console.WriteLine("Total Time: " + (DateTime.Now - startTime).ToString(@"m\:ss"));
+					Console.WriteLine(message);
+				}
+				if (final) {
+					ErrorLogger.Close();
+					if (errorLog.Count > 0) {
+						ShowErrorLog();
+						errorLog.Clear();
+					}
+				}
+			}
 		}
 		public static void ShowErrorLog() {
-			DispatcherObject dispatcher;
-			Window window = null;
-			if (progressWindow != null) {
-				window = progressWindow;
-				dispatcher = window;
+			#if !(CONSOLE)
+			if (!console) {
+				DispatcherObject dispatcher;
+				Window window = null;
+				if (progressWindow != null) {
+					window = progressWindow;
+					dispatcher = window;
+				}
+				else if (App.Current.MainWindow != null) {
+					window = App.Current.MainWindow;
+					dispatcher = window;
+				}
+				else {
+					dispatcher = Application.Current;
+				}
+				dispatcher.Dispatcher.Invoke(() => {
+					ErrorLogWindow.Show(window, errorLog.ToArray());
+					errorLog.Clear();
+				});
 			}
-			else if (MainWindow != null) {
-				window = MainWindow;
-				dispatcher = window;
+			else
+			#endif
+			{
+				if (!silent) {
+					ConsoleColor oldColor = Console.ForegroundColor;
+					Console.ForegroundColor = ConsoleColor.Red;
+					Console.WriteLine("Errors or warnings were encountered during the process.\nSee '" + Path.GetFileName(ErrorLogger.LogPath) + "' for more details.");
+					Console.ForegroundColor = oldColor;
+				}
 			}
-			else {
-				dispatcher = Application.Current;
-			}
-			dispatcher.Dispatcher.Invoke(() => {
-				ErrorLogWindow.Show(window, errorLog.ToArray());
-				errorLog.Clear();
-			});
 		}
 
 		public static void LogWarning(string message, string reason = "") {
@@ -142,7 +241,91 @@ namespace TConvert {
 			foreach (Script script in scripts) {
 				RunScript(script, false);
 			}
-			FinishProgress("Finished Dropping Files");
+			FinishProgress("Finished Processing Files");
+		}
+		public static void ProcessDropFiles(ProcessModes mode, string[] inputFiles, string[] outputFiles) {
+			List<PathIOPair> files = new List<PathIOPair>();
+
+			// Allow processing of directories too
+			for (int i = 0; i < inputFiles.Length; i++) {
+				string input = inputFiles[i];
+				string output = outputFiles[i];
+				if (Directory.Exists(input)) {
+					string[] dirFiles = Helpers.FindAllFiles(input);
+					foreach (string dirFile in dirFiles) {
+						files.Add(new PathIOPair { InPath=dirFile, OutPath=Helpers.GetOutputPath(dirFile, input, output) });
+					}
+				}
+				else {
+					files.Add(new PathIOPair { InPath=input, OutPath=output });
+				}
+			}
+
+			if (mode != ProcessModes.Backup && mode != ProcessModes.Restore) {
+				List<PathIOPair> extractFiles = new List<PathIOPair>();
+				List<PathIOPair> convertFiles = new List<PathIOPair>();
+				List<string> scriptFiles = new List<string>();
+
+				foreach (PathIOPair pair in files) {
+					string ext = Path.GetExtension(pair.InPath).ToLower();
+					switch (ext) {
+					case ".xnb":
+					case ".xwb":
+						if (mode == ProcessModes.Any || mode == ProcessModes.Extract)
+							extractFiles.Add(pair);
+						break;
+					case ".png":
+					case ".bmp":
+					case ".jpg":
+					case ".wav":
+						if (mode == ProcessModes.Any || mode == ProcessModes.Convert)
+							convertFiles.Add(pair);
+						break;
+					case ".xml":
+						if (mode == ProcessModes.Any || mode == ProcessModes.Script)
+							scriptFiles.Add(pair.InPath);
+						break;
+					}
+				}
+				
+				List<Script> scripts = new List<Script>();
+				foreach (string scriptFile in scriptFiles) {
+					Script script = LoadScript(scriptFile);
+					if (script != null) {
+						scripts.Add(script);
+						totalFiles += script.Extracts.Count + script.Converts.Count;
+						foreach (PathIOPair backup in script.Backups) {
+							totalFiles += Helpers.GetFileCount(backup.InPath);
+						}
+						foreach (PathIOPair restore in script.Restores) {
+							totalFiles += Helpers.GetFileCount(restore.InPath);
+						}
+					}
+				}
+				totalFiles += extractFiles.Count + convertFiles.Count;
+
+				foreach (var pair in extractFiles) {
+					ExtractFile2(pair.InPath, pair.OutPath);
+				}
+				foreach (var pair in convertFiles) {
+					ConvertFile2(pair.InPath, pair.OutPath);
+				}
+				foreach (Script script in scripts) {
+					RunScript(script, false);
+				}
+			}
+			else if (mode == ProcessModes.Backup) {
+				foreach (var pair in files) {
+					BackupFile2(pair.InPath, pair.OutPath);
+				}
+			}
+			else if (mode == ProcessModes.Restore) {
+				foreach (var pair in files) {
+					RestoreFile2(pair.InPath, pair.OutPath);
+				}
+			}
+			
+			FinishProgress("Finished Processing Files");
 		}
 
 		#endregion
@@ -342,12 +525,12 @@ namespace TConvert {
 				}
 				if (ext == ".png" || ext == ".bmp" || ext == ".jpg") {
 					Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
-					if (PngConverter.Convert(inputFile, outputFile, false, XCompress.IsAvailable, true))
+					if (PngConverter.Convert(inputFile, outputFile, true, XCompress.IsAvailable, true))
 						converted = true;
 				}
 				else if (ext == ".wav") {
 					Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
-					if (WavConverter.Convert(inputFile, outputFile, false))
+					if (WavConverter.Convert(inputFile, outputFile, true))
 						converted = true;
 				}
 			}
@@ -715,12 +898,74 @@ namespace TConvert {
 			filesCompleted++;
 			return backedUp;
 		}
+		public static bool BackupFile2(string inputFile, string outputFile) {
+			bool backedUp = false;
+			try {
+				UpdateProgress("Backing Up: " + Path.GetFileName(inputFile));
+				
+				Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
+				File.Copy(inputFile, outputFile, true);
+				backedUp = true;
+			}
+			catch (UnauthorizedAccessException ex) {
+				LogError("Backing up: " + inputFile, "Unauthorized access (" + ex.Message + ")");
+			}
+			catch (FileNotFoundException ex) {
+				LogError("Backing up: " + inputFile, "File not found (" + ex.Message + ")");
+			}
+			catch (DirectoryNotFoundException ex) {
+				LogError("Backing up: " + inputFile, "Directory not found (" + ex.Message + ")");
+			}
+			catch (IOException ex) {
+				LogError("Backing up: " + inputFile, "IO error (" + ex.Message + ")");
+			}
+			catch (Exception ex) {
+				LogError("Backing up: " + inputFile, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
+			}
+			filesCompleted++;
+			return backedUp;
+		}
 		public static bool RestoreFile(string inputFile, string inputDirectory, string outputDirectory) {
 			bool filedCopied = false;
 			try {
 				UpdateProgress("Restoring: " + Helpers.GetRelativePath(inputFile, inputDirectory));
 				
 				string outputFile = Helpers.GetOutputPath(inputFile, inputDirectory, outputDirectory);
+				bool shouldCopy = true;
+				Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
+				if (File.Exists(outputFile)) {
+					FileInfo info1 = new FileInfo(inputFile);
+					FileInfo info2 = new FileInfo(outputFile);
+					shouldCopy = info1.LastWriteTime != info2.LastWriteTime || info1.Length != info2.Length;
+				}
+				if (shouldCopy) {
+					File.Copy(inputFile, outputFile, true);
+					filedCopied = true;
+				}
+			}
+			catch (UnauthorizedAccessException ex) {
+				LogError("Restoring: " + inputFile, "Unauthorized access (" + ex.Message + ")");
+			}
+			catch (FileNotFoundException ex) {
+				LogError("Restoring: " + inputFile, "File not found (" + ex.Message + ")");
+			}
+			catch (DirectoryNotFoundException ex) {
+				LogError("Restoring: " + inputFile, "Directory not found (" + ex.Message + ")");
+			}
+			catch (IOException ex) {
+				LogError("Restoring: " + inputFile, "IO error (" + ex.Message + ")");
+			}
+			catch (Exception ex) {
+				LogError("Restoring: " + inputFile, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
+			}
+			filesCompleted++;
+			return filedCopied;
+		}
+		public static bool RestoreFile2(string inputFile, string outputFile) {
+			bool filedCopied = false;
+			try {
+				UpdateProgress("Restoring: " + Path.GetFileName(inputFile));
+				
 				bool shouldCopy = true;
 				Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
 				if (File.Exists(outputFile)) {

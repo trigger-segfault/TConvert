@@ -125,6 +125,7 @@ namespace TConvert {
 
 			menuItemAutoCloseProgress.IsChecked = Config.AutoCloseProgress;
 			menuItemAutoCloseDropProgress.IsChecked = Config.AutoCloseDropProgress;
+			menuItemAutoCloseCmdProgress.IsChecked = Config.AutoCloseCmdProgress;
 
 			loaded = true;
 		}
@@ -137,7 +138,6 @@ namespace TConvert {
 
 		private void OnWindowLoaded(object sender, RoutedEventArgs e) {
 			loaded = true;
-			Program.MainWindow = this;
 		}
 		private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e) {
 			try {
@@ -506,9 +506,10 @@ namespace TConvert {
 				foreach (string file in initialFiles) {
 					if (Directory.Exists(file))
 						files.AddRange(Helpers.FindAllFiles(file));
+					else
+						files.Add(file);
 				}
-
-				files.AddRange(initialFiles);
+				
 				foreach (string file in files) {
 					string ext = Path.GetExtension(file).ToLower();
 					switch (ext) {
@@ -517,6 +518,8 @@ namespace TConvert {
 						extractFiles.Add(file);
 						break;
 					case ".png":
+					case ".bmp":
+					case ".jpg":
 					case ".wav":
 						convertFiles.Add(file);
 						break;
@@ -527,7 +530,7 @@ namespace TConvert {
 				}
 
 				if (extractFiles.Count == 0 && convertFiles.Count == 0 && scriptFiles.Count == 0) {
-					TriggerMessageBox.Show(this, MessageIcon.Warning, "No files to convert or extract!", "File Drop");
+					TriggerMessageBox.Show(this, MessageIcon.Warning, "No files to convert or extract, or scripts to run!", "File Drop");
 				}
 				else {
 					Thread thread = new Thread(() => {
@@ -606,6 +609,11 @@ namespace TConvert {
 			if (!loaded)
 				return;
 			Config.AutoCloseDropProgress = menuItemAutoCloseDropProgress.IsChecked;
+		}
+		private void OnAutoCloseCmdProgress(object sender, RoutedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.AutoCloseCmdProgress = menuItemAutoCloseCmdProgress.IsChecked;
 		}
 
 		private void OnAbout(object sender, RoutedEventArgs e) {

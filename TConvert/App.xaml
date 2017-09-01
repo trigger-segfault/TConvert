@@ -4,8 +4,7 @@
              xmlns:local="clr-namespace:TConvert"
              DispatcherUnhandledException="OnDispatcherUnhandledException"
              Startup="OnAppStartup"
-             Exit="OnAppExit"
-             StartupUri="MainWindow.xaml">
+             Exit="OnAppExit">
     <Application.Resources>
          
     </Application.Resources>

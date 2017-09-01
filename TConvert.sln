@@ -7,14 +7,20 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TConvert", "TConvert\TConve
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
+		ConDebug|Any CPU = ConDebug|Any CPU
+		ConRelease|Any CPU = ConRelease|Any CPU
+		WinDebug|Any CPU = WinDebug|Any CPU
+		WinRelease|Any CPU = WinRelease|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A0490315-2780-4572-BBA1-F56A7C2A5901}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A0490315-2780-4572-BBA1-F56A7C2A5901}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A0490315-2780-4572-BBA1-F56A7C2A5901}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A0490315-2780-4572-BBA1-F56A7C2A5901}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0490315-2780-4572-BBA1-F56A7C2A5901}.ConDebug|Any CPU.ActiveCfg = ConDebug|Any CPU
+		{A0490315-2780-4572-BBA1-F56A7C2A5901}.ConDebug|Any CPU.Build.0 = ConDebug|Any CPU
+		{A0490315-2780-4572-BBA1-F56A7C2A5901}.ConRelease|Any CPU.ActiveCfg = ConRelease|Any CPU
+		{A0490315-2780-4572-BBA1-F56A7C2A5901}.ConRelease|Any CPU.Build.0 = ConRelease|Any CPU
+		{A0490315-2780-4572-BBA1-F56A7C2A5901}.WinDebug|Any CPU.ActiveCfg = WinDebug|Any CPU
+		{A0490315-2780-4572-BBA1-F56A7C2A5901}.WinDebug|Any CPU.Build.0 = WinDebug|Any CPU
+		{A0490315-2780-4572-BBA1-F56A7C2A5901}.WinRelease|Any CPU.ActiveCfg = WinRelease|Any CPU
+		{A0490315-2780-4572-BBA1-F56A7C2A5901}.WinRelease|Any CPU.Build.0 = WinRelease|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
