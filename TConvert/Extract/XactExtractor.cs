@@ -24,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using TConvert.Util;
@@ -51,9 +52,11 @@ namespace TConvert.Extract {
 		private static readonly int WavHeaderSize =
 			Label_RIFF.Length + 4 + Label_WAVE.Length + Label_fmt.Length +
 			4 + 2 + 2 + 4 + 4 + 2 + 2 + Label_data.Length + 4;
+		
+		private const string WaveBankList = "WaveBank.txt";
 
 		/** Mapping of music wave bank indexes to their names */
-		private static readonly string[] TrackNames = {
+		private static string[] TrackNames = {
 			"01_OverworldNight",
 			"02_Eerie",
 			"03_OverworldDay",
@@ -96,6 +99,48 @@ namespace TConvert.Extract {
 			"40_Sandstorm",
 			"41_OldOnesArmy"
 		};
+
+		static XactExtractor() {
+			// Try to find updated names of wave bank songs.
+			// This way even if TConvert is not maintained, the wavebank can be updated.
+			string path = Path.Combine(
+				Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
+				WaveBankList
+			);
+			if (File.Exists(path)) {
+				ReadWaveBankList(path);
+				return;
+			}
+			path = Path.Combine(
+				Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+				"My Games", "Terraria", WaveBankList
+			);
+			if (File.Exists(path)) {
+				ReadWaveBankList(path);
+				return;
+			}
+			if (TerrariaLocator.TerrariaContentDirectory != "") {
+				path = Path.Combine(
+					Path.GetDirectoryName(TerrariaLocator.TerrariaContentDirectory),
+					WaveBankList
+				);
+				if (File.Exists(path)) {
+					ReadWaveBankList(path);
+					return;
+				}
+			}
+		}
+		private static void ReadWaveBankList(string filepath) {
+			StreamReader reader = new StreamReader(filepath);
+			List<string> tracknames = new List<string>();
+			do {
+				string name = reader.ReadLine();
+				if (name != string.Empty)
+					tracknames.Add(name);
+			} while (!reader.EndOfStream);
+			reader.Close();
+			TrackNames = tracknames.ToArray();
+		}
 
 		private static void Status(String status) {
 		}
@@ -215,7 +260,9 @@ namespace TConvert.Extract {
 				// PCM was introduced for the last tracks in the 1.3.3 update.
 				string path = Path.Combine(outputDirectory, track + ".wav");
 				if (codec == MiniFormatTag_PCM) {
-					BinaryWriter writer = new BinaryWriter(new FileStream(path, FileMode.OpenOrCreate));
+					FileStream stream = new FileStream(path, FileMode.OpenOrCreate);
+					BinaryWriter writer = new BinaryWriter(stream);
+					stream.SetLength(0);
 					writer.Write(Label_RIFF); // chunk id
 					writer.Write(audiodata.Length + 36); // chunk size
 					writer.Write(Label_WAVE); // RIFF type
@@ -324,7 +371,9 @@ namespace TConvert.Extract {
 					// here were obtained via trial and error, so it might break...
 					//ByteBuffer writeBuffer = ByteBuffer.allocate(wavHeaderSize);
 					//writeBuffer.order(ByteOrder.LITTLE_ENDIAN);
-					BinaryWriter writer = new BinaryWriter(new FileStream(path, FileMode.OpenOrCreate));
+					FileStream stream = new FileStream(path, FileMode.OpenOrCreate);
+					BinaryWriter writer = new BinaryWriter(stream);
+					stream.SetLength(0);
 					writer.Write(Label_RIFF);
 					writer.Write(audiodata.Length + 36);
 					writer.Write(Label_WAVE);

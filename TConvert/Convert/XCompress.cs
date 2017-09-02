@@ -133,14 +133,13 @@ namespace TConvert.Convert {
 
 		static XCompress() {
 			try {
-				// Seems to make bigger files even larger in size. Also very slow. Let's ignore this.
-				//EmbeddedDlls.ExtractEmbeddedDlls("xcompress32.dll", Resources.xcompress32);
-				//EmbeddedDlls.LoadDll("xcompress32.dll");
+				EmbeddedApps.ExtractEmbeddedDll("xcompress32.dll", Resources.xcompress32);
+				EmbeddedApps.LoadDll("xcompress32.dll");
 				Compress(new byte[1]);
 				IsAvailable = true;
 			}
-			catch (DllNotFoundException e) {
-				IsAvailable = !e.Message.Contains("xcompress32.dll");
+			catch (DllNotFoundException) {
+				IsAvailable = false;
 			}
 		}
 	}

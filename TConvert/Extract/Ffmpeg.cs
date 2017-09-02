@@ -29,13 +29,19 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using TConvert.Properties;
+using TConvert.Util;
 
 namespace TConvert.Extract {
 	public static class Ffmpeg {
 		private static readonly string cmd = Path.Combine(
-			Assembly.GetExecutingAssembly().Location,
+			Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
 			"ffmpeg.exe"
 		);
+
+		static Ffmpeg() {
+			cmd = EmbeddedApps.ExtractEmbeddedExe("ffmpeg.exe", Resources.ffmpeg);
+		}
 
 		public static void Convert(string input, string output) {
 			/*
@@ -71,15 +77,6 @@ namespace TConvert.Extract {
 
 			Process process = Process.Start(start);
 			process.WaitForExit();
-		}
-
-		public static void Cleanup() {
-			if (File.Exists(cmd)) {
-				try {
-					File.Delete(cmd);
-				}
-				catch { }
-			}
 		}
 	}
 }

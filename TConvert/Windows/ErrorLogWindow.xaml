@@ -6,12 +6,11 @@
         xmlns:local="clr-namespace:TConvert.Windows"
         mc:Ignorable="d"
         Height="350" Width="500" WindowStartupLocation="CenterOwner" 
-        Title="Error Log" Icon="/Resources/Icons/AppError.ico" ShowInTaskbar="False" MinWidth="500" MinHeight="350">
+        Title="Error Log" Icon="/Resources/Icons/AppError.ico" ShowInTaskbar="False" MinWidth="500" MinHeight="350" Loaded="OnWindowLoaded">
+    <Window.TaskbarItemInfo>
+        <TaskbarItemInfo/>
+    </Window.TaskbarItemInfo>
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="175*"/>
-            <ColumnDefinition Width="82*"/>
-        </Grid.ColumnDefinitions>
         <Rectangle Fill="#FFF0F0F0" Height="49" Margin="0" VerticalAlignment="Bottom" StrokeThickness="0" Grid.ColumnSpan="2"/>
         <Button Content="Open Log File" HorizontalAlignment="Left" Margin="18,0,0,12" VerticalAlignment="Bottom" Width="128" Focusable="False" IsTabStop="False" Click="OnOpenLogFile"/>
         <Button Content="Close" HorizontalAlignment="Right" Margin="0,0,18,12" VerticalAlignment="Bottom" Width="80" Focusable="False" IsTabStop="False" IsCancel="True" IsDefault="True" Grid.Column="1"/>

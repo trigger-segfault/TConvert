@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TConvert {
+	/**<summary>A class for writing errors to a default log file.</summary>*/
 	public static class ErrorLogger {
 		//========== CONSTANTS ===========
 		#region Constants

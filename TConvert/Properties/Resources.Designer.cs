@@ -83,6 +83,16 @@ namespace TConvert.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap AutoClose {
+            get {
+                object obj = ResourceManager.GetObject("AutoClose", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap Browse {
             get {
                 object obj = ResourceManager.GetObject("Browse", resourceCulture);
@@ -116,6 +126,16 @@ namespace TConvert.Properties {
         internal static System.Drawing.Bitmap CloseProgress {
             get {
                 object obj = ResourceManager.GetObject("CloseProgress", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap Compression {
+            get {
+                object obj = ResourceManager.GetObject("Compression", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
@@ -223,6 +243,16 @@ namespace TConvert.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap Sound {
+            get {
+                object obj = ResourceManager.GetObject("Sound", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap TerrariaIcon {
             get {
                 object obj = ResourceManager.GetObject("TerrariaIcon", resourceCulture);
@@ -237,6 +267,16 @@ namespace TConvert.Properties {
             get {
                 object obj = ResourceManager.GetObject("WarningIcon", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] xcompress32 {
+            get {
+                object obj = ResourceManager.GetObject("xcompress32", resourceCulture);
+                return ((byte[])(obj));
             }
         }
     }

@@ -145,7 +145,13 @@
     <Compile Include="CommandLine.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ErrorLogger.cs" />
-    <Compile Include="Program.cs" />
+    <Compile Include="Extract\DtxUtil.cs" />
+    <Compile Include="Processing.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Startup.cs" />
     <Compile Include="TerrariaLocator.cs" />
     <Compile Include="Convert\PngConverter.cs" />
@@ -158,19 +164,15 @@
     <Compile Include="Extract\LzxBuffer.cs" />
     <Compile Include="Extract\LzxDecoder.cs" />
     <Compile Include="Extract\XnbExtractor.cs" />
-    <None Include="Util\EmbeddedDlls.cs" />
+    <Compile Include="Util\EmbeddedApps.cs" />
     <Compile Include="Util\Extensions.cs" />
     <Compile Include="Util\Helpers.cs" />
     <Compile Include="Util\Xnb.cs" />
+    <Compile Include="Windows\FlashWindow.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -208,6 +210,18 @@
     <Resource Include="Resources\Icons\CloseProgress.png" />
     <Resource Include="Resources\Icons\CloseDropProgress.png" />
     <Resource Include="Resources\Icons\CloseCmdProgress.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\xcompress32.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Icons\Compression.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Icons\AutoClose.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\Icons\Sound.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

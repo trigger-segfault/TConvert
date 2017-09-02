@@ -60,10 +60,10 @@ namespace TConvert.Convert {
 		}
 
 		private static void WriteData(Bitmap bmp, BinaryWriter writer) {
-			Xnb.Write7BitEncodedInt(writer, 1);					// type-reader-count
-			Xnb.Write7BitEncodedString(writer, Texture2DType);	// type-reader-name
-			writer.Write((int)0);								// reader version number
-			Xnb.Write7BitEncodedInt(writer, 0);                 // shared-resource-count
+			writer.Write7BitEncodedInt(1);                    // type-reader-count
+			writer.Write7BitEncodedString(Texture2DType);	// type-reader-name
+			writer.Write((int)0);                               // reader version number
+			writer.Write7BitEncodedInt(0);                 // shared-resource-count
 			// writing the image pixel data
 			writer.Write((byte)1);
 			writer.Write((int)0);
@@ -105,6 +105,7 @@ namespace TConvert.Convert {
 			using (Bitmap bmp = new Bitmap(inputFile)) {
 				using (FileStream stream = new FileStream(outputFile, FileMode.OpenOrCreate, FileAccess.Write)) {
 					using (BinaryWriter writer = new BinaryWriter(stream)) {
+						stream.SetLength(0);
 						writer.Write(Encoding.UTF8.GetBytes("XNB"));    // format-identifier
 						writer.Write(Encoding.UTF8.GetBytes("w"));      // target-platform
 						writer.Write((byte)5);                          // xnb-format-version

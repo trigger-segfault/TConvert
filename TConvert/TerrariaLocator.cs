@@ -7,14 +7,28 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 
 namespace TConvert {
+	/**<summary>Finds the Terraria Content folder.</summary>*/
 	public static class TerrariaLocator {
+		//=========== MEMBERS ============
+		#region Members
 
+		/**<summary>The located or empty Terraria Content folder.</summary>*/
 		public static readonly string TerrariaContentDirectory;
 
+		#endregion
+		//========= CONSTRUCTORS =========
+		#region Constructors
+
+		/**<summary>Start looking for the Terraria Content folder.</summary>*/
 		static TerrariaLocator() {
 			TerrariaContentDirectory = FindTerrariaContentDirectory();
 		}
 
+		#endregion
+		//=========== LOCATORS ===========
+		#region Locators
+
+		/**<summary>Starts looking for the Terraria Content folder.</summary>*/
 		private static string FindTerrariaContentDirectory() {
 			try {
 				// Check the windows registry for steam installation path
@@ -47,6 +61,7 @@ namespace TConvert {
 			return null;
 		}
 
+		/**<summary>Seeks a directory for the Terraria Content folder.</summary>*/
 		private static string SeekDirectory(string steamDirectory) {
 			if (steamDirectory == null || !Directory.Exists(steamDirectory)) {
 				return null;
@@ -63,20 +78,26 @@ namespace TConvert {
 			return null;
 		}
 
-		static string GetProperDirectoryCapitalization(DirectoryInfo dirInfo) {
+		#endregion
+		//=========== HELPERS ============
+		#region Helpers
+
+		/**<summary>Gets the proper capitalization of a path so it looks nice.</summary>*/
+		private static string GetProperDirectoryCapitalization(DirectoryInfo dirInfo) {
 			DirectoryInfo parentDirInfo = dirInfo.Parent;
 			if (null == parentDirInfo)
 				return dirInfo.Name;
 			return Path.Combine(GetProperDirectoryCapitalization(parentDirInfo),
 								parentDirInfo.GetDirectories(dirInfo.Name)[0].Name);
 		}
-
-		static string GetProperFilePathCapitalization(string filename) {
+		/**<summary>Recursively gets the proper capitalization of a path so it looks nice.</summary>*/
+		private static string GetProperFilePathCapitalization(string filename) {
 			FileInfo fileInfo = new FileInfo(filename);
 			DirectoryInfo dirInfo = fileInfo.Directory;
 			return Path.Combine(GetProperDirectoryCapitalization(dirInfo),
 								dirInfo.GetFiles(fileInfo.Name)[0].Name);
 		}
 
+		#endregion
 	}
 }

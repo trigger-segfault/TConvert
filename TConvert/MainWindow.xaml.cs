@@ -23,27 +23,30 @@ using TConvert.Windows;
 using Path = System.IO.Path;
 
 namespace TConvert {
-	/// <summary>
-	/// Interaction logic for MainWindow.xaml
-	/// </summary>
+	/**<summary>The main TConvert window.</summary>*/
 	public partial class MainWindow : Window {
 		//=========== MEMBERS ============
 		#region Members
-			
+
+		/**<summary>True if the window has been loaded.</summary>*/
 		bool loaded;
+		/**<summary>The last path visited with a folder browser.</summary>*/
 		string lastFolderPath;
+		/**<summary>The last path visited with a file browser.</summary>*/
 		string lastFilePath;
 
 		#endregion
 		//========= CONSTRUCTORS =========
 		#region Constructors
 
+		/**<summary>Constructs the main window.</summary>*/
 		public MainWindow() {
 			loaded = false;
 			InitializeComponent();
 			lastFolderPath = "";
 			lastFilePath = "";
 
+			// Disable drag/drop text in textboxes so you can scroll their contents easily
 			DataObject.AddCopyingHandler(textBoxTerrariaContent, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
 			DataObject.AddCopyingHandler(textBoxExtractInput, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
 			DataObject.AddCopyingHandler(textBoxExtractOutput, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
@@ -62,7 +65,7 @@ namespace TConvert {
 		//============ CONFIG ============
 		#region Config
 
-		/**<summary>Updates controls after a config load.</summary>*/
+		/**<summary>Loads the config and updates controls.</summary>*/
 		private void LoadConfig() {
 			loaded = false;
 
@@ -75,6 +78,7 @@ namespace TConvert {
 			textBoxExtractOutput.Text = Config.Extract.CurrentOutput;
 			checkBoxExtractImages.IsChecked = Config.Extract.AllowImages;
 			checkBoxExtractSounds.IsChecked = Config.Extract.AllowSounds;
+			checkBoxExtractFonts.IsChecked = Config.Extract.AllowFonts;
 			checkBoxExtractWaveBank.IsChecked = Config.Extract.AllowWaveBank;
 			checkBoxExtractUseInput.IsChecked = Config.Extract.UseInput;
 			textBoxExtractOutput.IsEnabled = !Config.Extract.UseInput;
@@ -123,11 +127,12 @@ namespace TConvert {
 
 			tabControl.SelectedIndex = (int)Config.CurrentTab;
 
+			menuItemCompressImages.IsEnabled = XCompress.IsAvailable;
+			menuItemCompressImages.IsChecked = Config.CompressImages;
+			menuItemCompletionSound.IsChecked = Config.CompletionSound;
 			menuItemAutoCloseProgress.IsChecked = Config.AutoCloseProgress;
 			menuItemAutoCloseDropProgress.IsChecked = Config.AutoCloseDropProgress;
 			menuItemAutoCloseCmdProgress.IsChecked = Config.AutoCloseCmdProgress;
-
-			loaded = true;
 		}
 		
 		#endregion
@@ -139,16 +144,19 @@ namespace TConvert {
 		private void OnWindowLoaded(object sender, RoutedEventArgs e) {
 			loaded = true;
 		}
-		private void OnClosing(object sender, System.ComponentModel.CancelEventArgs e) {
+		private void OnWindowClosing(object sender, System.ComponentModel.CancelEventArgs e) {
 			try {
 				Config.Save();
 			}
 			catch { }
 		}
+		private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e) {
+			// Make text boxes lose focus on click away
+			FocusManager.SetFocusedElement(this, this);
+		}
 		private void OnTabChanged(object sender, SelectionChangedEventArgs e) {
 			if (!loaded)
 				return;
-
 			Config.CurrentTab = (Tabs)tabControl.SelectedIndex;
 		}
 		private void OnBrowseTerraria(object sender, RoutedEventArgs e) {
@@ -162,8 +170,13 @@ namespace TConvert {
 			if (result == System.Windows.Forms.DialogResult.OK) {
 				Config.TerrariaContentDirectory = dialog.SelectedPath;
 				textBoxTerrariaContent.Text = dialog.SelectedPath;
-				lastFolderPath = dialog.SelectedPath;
 			}
+			lastFolderPath = dialog.SelectedPath;
+		}
+		private void OnTerrariaContentChanged(object sender, TextChangedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.TerrariaContentDirectory = textBoxTerrariaContent.Text;
 		}
 
 		#endregion
@@ -175,41 +188,41 @@ namespace TConvert {
 			string output = (Config.Extract.UseInput ? Config.Extract.CurrentInput : Config.Extract.CurrentOutput);
 			bool allowImages = Config.Extract.AllowImages;
 			bool allowSounds = Config.Extract.AllowSounds;
+			bool allowFonts = Config.Extract.AllowFonts;
 			bool allowWaveBank = Config.Extract.AllowWaveBank;
 
 			Thread thread;
 			if (Config.Extract.Mode == InputModes.Folder) {
-				if (!DirectoryExistsSafe(input)) {
+				if (!Helpers.DirectoryExistsSafe(input)) {
 					TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the input folder.", "Invalid Path");
 					return;
 				}
-				if (!DirectoryExistsSafe(output)) {
-					TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the output folder.", "Invalid Path");
+				if (!Helpers.IsPathValid(output)) {
+					TriggerMessageBox.Show(this, MessageIcon.Warning, "Output folder path is invalid.", "Invalid Path");
 					return;
 				}
 				thread = new Thread(() => {
-					Program.ExtractAll(input, output, allowImages, allowSounds, allowWaveBank);
+					Processing.ExtractAll(input, output, allowImages, allowSounds, allowFonts, allowWaveBank);
 				});
 			}
 			else {
-				if (!FileExistsSafe(input)) {
+				if (!Helpers.FileExistsSafe(input)) {
 					TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the input file.", "Invalid Path");
 					return;
 				}
-				if (!FileExistsSafe(output)) {
-					TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the output file.", "Invalid Path");
+				if (!Helpers.IsPathValid(output)) {
+					TriggerMessageBox.Show(this, MessageIcon.Warning, "Output file path is invalid.", "Invalid Path");
 					return;
 				}
 				thread = new Thread(() => {
-					Program.ExtractSingleFile(input, output);
+					Processing.ExtractSingleFile(input, output);
 				});
 			}
-			Program.StartProgressThread(this, "Extracting...", Config.AutoCloseProgress, thread);
+			Processing.StartProgressThread(this, "Extracting...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, thread);
 		}
 		private void OnExtractModeChanged(object sender, SelectionChangedEventArgs e) {
 			if (!loaded)
 				return;
-			
 			Config.Extract.Mode = (InputModes)comboBoxExtractMode.SelectedIndex;
 			
 			switch (Config.Extract.Mode) {
@@ -259,6 +272,11 @@ namespace TConvert {
 				return;
 			Config.Extract.AllowSounds = checkBoxExtractSounds.IsChecked.Value;
 		}
+		private void OnExtractFontsChecked(object sender, RoutedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.Extract.AllowFonts = checkBoxExtractFonts.IsChecked.Value;
+		}
 		private void OnExtractWaveBankChecked(object sender, RoutedEventArgs e) {
 			if (!loaded)
 				return;
@@ -269,6 +287,16 @@ namespace TConvert {
 				return;
 			Config.Extract.FolderInput = Config.TerrariaContentDirectory;
 			textBoxExtractInput.Text = Config.TerrariaContentDirectory;
+		}
+		private void OnExtractInputChanged(object sender, TextChangedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.Extract.CurrentInput = textBoxExtractInput.Text;
+		}
+		private void OnExtractOutputChanged(object sender, TextChangedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.Extract.CurrentOutput = textBoxExtractOutput.Text;
 		}
 
 		#endregion
@@ -283,41 +311,32 @@ namespace TConvert {
 
 			Thread thread;
 			if (Config.Convert.Mode == InputModes.Folder) {
-				if (!DirectoryExistsSafe(input)) {
+				if (!Helpers.DirectoryExistsSafe(input)) {
 					TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the input folder.", "Invalid Path");
 					return;
 				}
-				if (!DirectoryExistsSafe(output)) {
-					TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the output folder.", "Invalid Path");
+				if (!Helpers.IsPathValid(output)) {
+					TriggerMessageBox.Show(this, MessageIcon.Warning, "Output folder path is invalid.", "Invalid Path");
 					return;
 				}
 				thread = new Thread(() => {
-					Program.ConvertAll(input, output, allowImages, allowSounds);
-				});
-			}
-			else if (Config.Convert.Mode == InputModes.File) {
-				if (!FileExistsSafe(input)) {
-					TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the input file", "Invalid Path");
-					return;
-				}
-				if (!FileExistsSafe(output)) {
-					TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the output file.", "Invalid Path");
-					return;
-				}
-				thread = new Thread(() => {
-					Program.ConvertSingleFile(input, output);
+					Processing.ConvertAll(input, output, allowImages, allowSounds);
 				});
 			}
 			else {
-				if (!FileExistsSafe(input)) {
-					TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the script file.", "Invalid Path");
+				if (!Helpers.FileExistsSafe(input)) {
+					TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the input file", "Invalid Path");
+					return;
+				}
+				if (!Helpers.IsPathValid(output)) {
+					TriggerMessageBox.Show(this, MessageIcon.Warning, "Output file path is invalid.", "Invalid Path");
 					return;
 				}
 				thread = new Thread(() => {
-					Program.RunScript(input);
+					Processing.ConvertSingleFile(input, output);
 				});
 			}
-			Program.StartProgressThread(this, "Converting...", Config.AutoCloseProgress, thread);
+			Processing.StartProgressThread(this, "Converting...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, thread);
 		}
 		private void OnConvertModeChanged(object sender, SelectionChangedEventArgs e) {
 			if (!loaded)
@@ -377,6 +396,16 @@ namespace TConvert {
 			Config.Convert.FolderOutput = Config.TerrariaContentDirectory;
 			textBoxConvertOutput.Text = Config.TerrariaContentDirectory;
 		}
+		private void OnConvertInputChanged(object sender, TextChangedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.Convert.CurrentInput = textBoxConvertInput.Text;
+		}
+		private void OnConvertOutputChanged(object sender, TextChangedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.Convert.CurrentOutput = textBoxConvertOutput.Text;
+		}
 
 		#endregion
 		//--------------------------------
@@ -386,37 +415,45 @@ namespace TConvert {
 			string input = Config.Backup.FolderContent;
 			string output = Config.Backup.FolderBackup;
 
-			if (!DirectoryExistsSafe(input)) {
+			if (!Helpers.DirectoryExistsSafe(input)) {
 				TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the Content folder.", "Invalid Path");
 				return;
 			}
-			if (!DirectoryExistsSafe(output)) {
-				TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the Backup folder.", "Invalid Path");
+			if (!Helpers.IsPathValid(output)) {
+				TriggerMessageBox.Show(this, MessageIcon.Warning, "The Backup folder path is invalid.", "Invalid Path");
+				return;
+			}
+			if (string.Compare(Path.GetFullPath(input), Path.GetFullPath(output), true) == 0) {
+				TriggerMessageBox.Show(this, MessageIcon.Warning, "Backup paths cannot be the same folder.", "Invalid Path");
 				return;
 			}
 
 			Thread thread = new Thread(() => {
-				Program.BackupFiles(input, output);
+				Processing.BackupFiles(input, output);
 			});
-			Program.StartProgressThread(this, "Backing Up...", Config.AutoCloseProgress, thread);
+			Processing.StartProgressThread(this, "Backing Up...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, thread);
 		}
 		private void OnRestore(object sender, RoutedEventArgs e) {
 			string input = Config.Backup.FolderBackup;
 			string output = Config.Backup.FolderContent;
 
-			if (!DirectoryExistsSafe(input)) {
+			if (!Helpers.DirectoryExistsSafe(input)) {
 				TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the Backup folder.", "Invalid Path");
 				return;
 			}
-			if (!DirectoryExistsSafe(output)) {
+			if (!Helpers.DirectoryExistsSafe(output)) {
 				TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the Content folder.", "Invalid Path");
+				return;
+			}
+			if (string.Compare(Path.GetFullPath(input), Path.GetFullPath(output), true) == 0) {
+				TriggerMessageBox.Show(this, MessageIcon.Warning, "Restore paths cannot be the same folder.", "Invalid Path");
 				return;
 			}
 
 			Thread thread = new Thread(() => {
-				Program.RestoreFiles(input, output);
+				Processing.RestoreFiles(input, output);
 			});
-			Program.StartProgressThread(this, "Restoring...", Config.AutoCloseProgress, thread);
+			Processing.StartProgressThread(this, "Restoring...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, thread);
 		}
 		private void OnBackupChangeContent(object sender, RoutedEventArgs e) {
 			System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
@@ -429,8 +466,8 @@ namespace TConvert {
 			if (result == System.Windows.Forms.DialogResult.OK) {
 				Config.Backup.FolderContent = dialog.SelectedPath;
 				textBoxContent.Text = dialog.SelectedPath;
-				lastFolderPath = dialog.SelectedPath;
 			}
+			lastFolderPath = dialog.SelectedPath;
 		}
 		private void OnBackupChangeBackup(object sender, RoutedEventArgs e) {
 			System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
@@ -443,12 +480,22 @@ namespace TConvert {
 			if (result == System.Windows.Forms.DialogResult.OK) {
 				Config.Backup.FolderBackup = dialog.SelectedPath;
 				textBoxBackup.Text = dialog.SelectedPath;
-				lastFolderPath = dialog.SelectedPath;
 			}
+			lastFolderPath = dialog.SelectedPath;
 		}
 		private void OnBackupUseTerraria(object sender, RoutedEventArgs e) {
 			Config.Backup.FolderContent = Config.TerrariaContentDirectory;
 			textBoxContent.Text = Config.TerrariaContentDirectory;
+		}
+		private void OnContentChanged(object sender, TextChangedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.Backup.FolderContent = textBoxContent.Text;
+		}
+		private void OnBackupChanged(object sender, TextChangedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.Backup.FolderBackup = textBoxBackup.Text;
 		}
 
 		#endregion
@@ -459,16 +506,16 @@ namespace TConvert {
 			string input = Config.Script.File;
 
 			Thread thread;
-			if (!FileExistsSafe(input)) {
+			if (!Helpers.FileExistsSafe(input)) {
 				TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the script file.", "Invalid Path");
 				return;
 			}
 			thread = new Thread(() => {
-				Program.RunScript(input);
+				Processing.RunScript(input);
 			});
-			Program.StartProgressThread(this, "Running Script...", Config.AutoCloseProgress, thread);
+			Processing.StartProgressThread(this, "Running Script...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, thread);
 		}
-		private void OnScriptChange(object sender, RoutedEventArgs e) {
+		private void OnChangeScript(object sender, RoutedEventArgs e) {
 			OpenFileDialog dialog = new OpenFileDialog();
 			dialog.Filter = "Xml files (*.xml)|*.xml|All files (*.*)|*.*";
 			dialog.FilterIndex = 0;
@@ -483,10 +530,15 @@ namespace TConvert {
 			}
 			var result = dialog.ShowDialog(this);
 			if (result.HasValue && result.Value) {
-				lastFilePath = Path.GetDirectoryName(dialog.FileName);
 				textBoxScript.Text = dialog.FileName;
 				Config.Script.File = dialog.FileName;
 			}
+			lastFilePath = Path.GetDirectoryName(dialog.FileName);
+		}
+		private void OnScriptChanged(object sender, TextChangedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.Script.File = textBoxScript.Text;
 		}
 
 		#endregion
@@ -495,7 +547,7 @@ namespace TConvert {
 
 		private void OnFileDrop(object sender, DragEventArgs e) {
 			labelDrop.Visibility = Visibility.Hidden;
-			if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+			if (this.OwnedWindows.Count == 0 && e.Data.GetDataPresent(DataFormats.FileDrop)) {
 				List<string> files = new List<string>();
 				List<string> extractFiles = new List<string>();
 				List<string> convertFiles = new List<string>();
@@ -530,27 +582,41 @@ namespace TConvert {
 				}
 
 				if (extractFiles.Count == 0 && convertFiles.Count == 0 && scriptFiles.Count == 0) {
-					TriggerMessageBox.Show(this, MessageIcon.Warning, "No files to convert or extract, or scripts to run!", "File Drop");
+					// Prevent Explorer from freazing until the message box is closed
+					Thread showThread = new Thread(() => {
+						Application.Current.Dispatcher.Invoke(() => {
+							TriggerMessageBox.Show(this, MessageIcon.Warning, "No files to convert or extract, or scripts to run!", "File Drop");
+						});
+					});
+					showThread.Start();
 				}
 				else {
 					Thread thread = new Thread(() => {
-						Program.ProcessDropFiles(extractFiles.ToArray(), convertFiles.ToArray(), scriptFiles.ToArray());
+						Processing.ProcessDropFiles(extractFiles.ToArray(), convertFiles.ToArray(), scriptFiles.ToArray());
 					});
-					Program.StartProgressThread(this, "Processing Drop Files...", Config.AutoCloseDropProgress, thread);
+					Processing.StartProgressThread(this, "Processing Drop Files...", Config.AutoCloseDropProgress, Config.CompressImages, Config.CompletionSound, thread);
 				}
 			}
 		}
-
 		private void OnFileDropEnter(object sender, DragEventArgs e) {
-			if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+			if (this.OwnedWindows.Count == 0 && e.Data.GetDataPresent(DataFormats.FileDrop)) {
 				labelDrop.Visibility = Visibility.Visible;
 				e.Effects = DragDropEffects.Copy;
 			}
 			else {
 				e.Effects = DragDropEffects.None;
 			}
+			e.Handled = true;
 		}
-
+		private void OnFileDropOver(object sender, DragEventArgs e) {
+			if (this.OwnedWindows.Count == 0 && e.Data.GetDataPresent(DataFormats.FileDrop)) {
+				e.Effects = DragDropEffects.Copy;
+			}
+			else {
+				e.Effects = DragDropEffects.None;
+			}
+			e.Handled = true;
+		}
 		private void OnFileDropLeave(object sender, DragEventArgs e) {
 			labelDrop.Visibility = Visibility.Hidden;
 		}
@@ -600,6 +666,16 @@ namespace TConvert {
 			Close();
 		}
 
+		private void OnCompressImagesChecked(object sender, RoutedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.CompressImages = menuItemCompressImages.IsChecked;
+		}
+		private void OnCompletionSoundChecked(object sender, RoutedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.CompletionSound = menuItemCompletionSound.IsChecked;
+		}
 		private void OnAutoCloseProgress(object sender, RoutedEventArgs e) {
 			if (!loaded)
 				return;
@@ -645,8 +721,8 @@ namespace TConvert {
 					if (dialog.SelectedPath == string.Empty)
 						dialog.SelectedPath = lastFolderPath;
 					var result = FolderBrowserLauncher.ShowFolderBrowser(dialog);
+					lastFolderPath = dialog.SelectedPath;
 					if (result == System.Windows.Forms.DialogResult.OK) {
-						lastFolderPath = dialog.SelectedPath;
 						return dialog.SelectedPath;
 					}
 					break;
@@ -676,30 +752,14 @@ namespace TConvert {
 						dialog.InitialDirectory = lastFilePath;
 					}
 					var result = dialog.ShowDialog(this);
+					lastFilePath = Path.GetDirectoryName(dialog.FileName);
 					if (result.HasValue && result.Value) {
-						lastFilePath = Path.GetDirectoryName(dialog.FileName);
 						return dialog.FileName;
 					}
 					break;
 				}
 			}
 			return null;
-		}
-		private bool DirectoryExistsSafe(string path) {
-			try {
-				if (Directory.Exists(path))
-					return true;
-			}
-			catch { }
-			return false;
-		}
-		private bool FileExistsSafe(string path) {
-			try {
-				if (File.Exists(path))
-					return true;
-			}
-			catch { }
-			return false;
 		}
 
 		#endregion

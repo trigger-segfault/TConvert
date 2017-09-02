@@ -11,7 +11,7 @@ using System.Windows;
 #if !(CONSOLE)
 [assembly: AssemblyDescription("TConvert - A combination tool for Terraria content resources.")]
 #else
-[assembly: AssemblyDescription("TConvert Console - A combination tool for Terraria content resources.")]
+[assembly: AssemblyDescription("TConvert (Console Ver) - A combination tool for Terraria content resources.")]
 #endif
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Trigger's Tools & Games")]

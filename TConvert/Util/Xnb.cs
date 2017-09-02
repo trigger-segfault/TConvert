@@ -6,8 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace TConvert.Util {
-	public static class Xnb {
-		public static int Get7BitEncodedInt(BinaryReader reader) {
+	public static class XnbExtensions {
+		public static int Read7BitEncodedInt(this BinaryReader reader) {
 			int result = 0;
 			int bitsRead = 0;
 			int value;
@@ -20,20 +20,20 @@ namespace TConvert.Util {
 
 			return result;
 		}
-		public static void Write7BitEncodedInt(BinaryWriter writer, int i) {
+		public static String Read7BitEncodedString(this BinaryReader reader) {
+			int length = reader.Read7BitEncodedInt();
+			return Encoding.UTF8.GetString(reader.ReadBytes(length));
+		}
+
+		public static void Write7BitEncodedInt(this BinaryWriter writer, int i) {
 			while (i >= 0x80) {
 				writer.Write((byte)(i & 0xff));
 				i >>= 7;
 			}
 			writer.Write((byte)i);
 		}
-
-		public static String Get7BitEncodedString(BinaryReader reader) {
-			int length = Get7BitEncodedInt(reader);
-			return Encoding.UTF8.GetString(reader.ReadBytes(length));
-		}
-		public static void Write7BitEncodedString(BinaryWriter writer, string s) {
-			Write7BitEncodedInt(writer, s.Length);
+		public static void Write7BitEncodedString(this BinaryWriter writer, string s) {
+			writer.Write7BitEncodedInt(s.Length);
 			writer.Write(Encoding.UTF8.GetBytes(s));
 		}
 	}

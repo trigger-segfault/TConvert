@@ -4,6 +4,7 @@ using System.Windows.Forms;
 
 namespace TConvert.Windows {
 	//https://stackoverflow.com/questions/6942150/why-folderbrowserdialog-dialog-does-not-scroll-to-selected-folder
+	/**<summary>Launch a folder browser and make sure it scrolls to the selected folder open opening.</summary>*/
 	public static class FolderBrowserLauncher {
 		/// <summary>
 		/// Using title text to look for the top level dialog window is fragile.
@@ -46,8 +47,7 @@ namespace TConvert.Windows {
 		private const int TVGN_FIRSTVISIBLE = 0x5;
 		private const int TVGN_NEXTVISIBLE = 0x6;
 		private const int TVGN_CARET = 0x9;
-
-
+		
 		/// <summary>
 		/// Calling this method is identical to calling the ShowDialog method of the provided
 		/// FolderBrowserDialog, except that an attempt will be made to scroll the Tree View

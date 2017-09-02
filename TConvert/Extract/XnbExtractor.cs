@@ -60,6 +60,11 @@ namespace TConvert.Extract {
 	public static class XnbExtractor {
 
 		private const int SurfaceFormatColor = 0;
+		private const int SurfaceFormatDxt1 = 4;
+		private const int SurfaceFormatDxt3 = 5;
+		private const int SurfaceFormatDxt5 = 6;
+
+
 		private const int HeaderSize = 14;
 
 		private static readonly byte[] Label_RIFF = Encoding.UTF8.GetBytes("RIFF");
@@ -70,7 +75,7 @@ namespace TConvert.Extract {
 
 		private static LzxDecoder lzxDecoder = new LzxDecoder();
 
-		public static bool Extract(string inputFile, string outputFile, bool changeExtension, bool extractImages, bool extractSounds) {
+		public static bool Extract(string inputFile, string outputFile, bool changeExtension, bool extractImages, bool extractSounds, bool extractFonts) {
 			BinaryReader reader = new BinaryReader(new MemoryStream(File.ReadAllBytes(inputFile)));
 			
 			if (!CompareBytesToString(reader.ReadBytes(3), "XNB")) {
@@ -101,10 +106,10 @@ namespace TConvert.Extract {
 				reader = new BinaryReader(decompressedStream);
 			}
 
-			int typeReaderCount = Xnb.Get7BitEncodedInt(reader);
+			int typeReaderCount = reader.Read7BitEncodedInt();
 
 			// The first type reader is used for reading the primary asset
-			string typeReaderName = Xnb.Get7BitEncodedString(reader);
+			string typeReaderName = reader.Read7BitEncodedString();
 			// The type reader version - Dosen't matter
 			reader.ReadInt32();
 
@@ -115,16 +120,16 @@ namespace TConvert.Extract {
 
 			// Skip the remaining type readers, as all types are known
 			for (int k = 1; k < typeReaderCount; k++) {
-				Xnb.Get7BitEncodedString(reader);
+				reader.Read7BitEncodedString();
 				reader.ReadInt32();
 			}
 
 			// Shared resources are unused by Terraria assets
-			if (Xnb.Get7BitEncodedInt(reader) != 0) {
+			if (reader.Read7BitEncodedInt() != 0) {
 				throw new XnbException("shared resources are not supported");
 			}
 
-			if (Xnb.Get7BitEncodedInt(reader) != 1) {
+			if (reader.Read7BitEncodedInt() != 1) {
 				throw new XnbException("primary asset is null; this shouldn't happen");
 			}
 
@@ -141,45 +146,7 @@ namespace TConvert.Extract {
 						outputFile = Path.ChangeExtension(outputFile, ".png");
 					}
 
-					int surfaceFormat = reader.ReadInt32();
-
-					int width = reader.ReadInt32();
-					int height = reader.ReadInt32();
-
-					// Mip count
-					int mipCount = reader.ReadInt32();
-					// Size
-					int size = reader.ReadInt32();
-
-					if (mipCount != 1) {
-						throw new XnbException("unexpected mipCount: " + mipCount);
-					}
-
-					if (size != width * height * 4) {
-						throw new XnbException("unexpected size: " + size);
-					}
-
-					if (surfaceFormat != SurfaceFormatColor) {
-						throw new XnbException("unexpected surface format: " + surfaceFormat);
-					}
-					byte[] source = reader.ReadBytes(size);
-					for (int i = 0; i < width * height; i++) {
-						byte swap = source[i * 4 + 0];
-						source[i * 4 + 0] = source[i * 4 + 2];
-						source[i * 4 + 2] = swap;
-					}
-					Bitmap bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
-					BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
-					IntPtr data = bmpData.Scan0;
-
-					int index = 0;
-					for (int y = 0; y < height; y++) {
-						int stride = width * 4;
-						Marshal.Copy(source, index, data, stride);
-						data += stride;
-						index += stride;
-					}
-					bmp.UnlockBits(bmpData);
+					Bitmap bmp = ReadTexture2D(reader);
 					bmp.Save(outputFile, ImageFormat.Png);
 					return true;
 				}
@@ -212,7 +179,9 @@ namespace TConvert.Extract {
 
 					// Note that the samples are written directly from the source buffer
 
-					BinaryWriter writer = new BinaryWriter(new FileStream(outputFile, FileMode.OpenOrCreate));
+					FileStream stream = new FileStream(outputFile, FileMode.OpenOrCreate);
+					BinaryWriter writer = new BinaryWriter(stream);
+					stream.SetLength(0);
 
 					// Write header
 					writer.Write(Label_RIFF);
@@ -236,8 +205,54 @@ namespace TConvert.Extract {
 					reader.Close();
 					return true;
 				}
-			case "ReLogic.Graphics.DynamicSpriteFontReader":
-			case "Microsoft.Xna.Framework.Content.SpriteFontReader":
+			case "ReLogic.Graphics.DynamicSpriteFontReader": {
+					if (!extractFonts) {
+						reader.Close();
+						return false;
+					}
+					if (changeExtension) {
+						outputFile = Path.ChangeExtension(outputFile, ".png");
+					}
+
+					float spacing = reader.ReadSingle();
+					int lineSpacing = reader.ReadInt32();
+					char defaultCharacter = (char)reader.ReadChar();
+					int numPages = reader.ReadInt32();
+					for (int i = 0; i < numPages; i++) {
+						string newOutputFile = Path.Combine(Path.GetDirectoryName(outputFile),
+							Path.GetFileNameWithoutExtension(outputFile) +
+							"_" + i + Path.GetExtension(outputFile));
+
+						reader.Read7BitEncodedInt();
+						Bitmap bmp = ReadTexture2D(reader);
+						bmp.Save(newOutputFile, ImageFormat.Png);
+
+						SkipList(reader, 16); // List<Rectangle>
+						SkipList(reader, 16); // List<Rectangle>
+						SkipCharList(reader); // List<char>
+						SkipList(reader, 12); // List<Vector3>
+					}
+					reader.Close();
+					return true;
+				}
+			case "Microsoft.Xna.Framework.Content.SpriteFontReader": {
+					// Not in use by Terraria anymore, but it's easy to read so I may as well include it.
+					if (!extractFonts) {
+						reader.Close();
+						return false;
+					}
+					if (changeExtension) {
+						outputFile = Path.ChangeExtension(outputFile, ".png");
+					}
+
+					reader.Read7BitEncodedInt();
+					Bitmap bmp = ReadTexture2D(reader);
+					bmp.Save(outputFile, ImageFormat.Png);
+
+					// Skip the rest of the data. It's not needed.
+
+					return true;
+				}
 			case "Microsoft.Xna.Framework.Content.EffectReader": {
 					// Not supported
 					return false;
@@ -247,6 +262,76 @@ namespace TConvert.Extract {
 				}
 			}
 
+		}
+
+		private static Bitmap ReadTexture2D(BinaryReader reader) {
+			int surfaceFormat = reader.ReadInt32();
+			int width = reader.ReadInt32();
+			int height = reader.ReadInt32();
+
+			// Mip count
+			int mipCount = reader.ReadInt32();
+			// Size
+			int size = reader.ReadInt32();
+
+			if (mipCount < 1) {
+				throw new XnbException("Unexpected mipCount: " + mipCount + ".");
+			}
+			/*if (size != width * height * (surfaceFormat != 5 ? 4 : 1)) {
+				throw new XnbException("Unexpected size: " + size + ".");
+			}*/
+
+			byte[] source = reader.ReadBytes(size);
+
+			if (surfaceFormat != SurfaceFormatColor) {
+				//https://github.com/mcgrue/FNA/blob/master/src/Content/ContentReaders/Texture2DReader.cs
+
+				if (surfaceFormat == SurfaceFormatDxt1) {
+					source = DxtUtil.DecompressDxt1(source, width, height);
+				}
+				else if (surfaceFormat == SurfaceFormatDxt3) {
+					source = DxtUtil.DecompressDxt3(source, width, height);
+				}
+				else if (surfaceFormat == SurfaceFormatDxt5) {
+					source = DxtUtil.DecompressDxt5(source, width, height);
+				}
+				else {
+					throw new XnbException("Unexpected surface format: " + surfaceFormat + ".");
+				}
+			}
+
+			// Swap R and B channels
+			for (int j = 0; j < width * height; j++) {
+				byte swap = source[j * 4 + 0];
+				source[j * 4 + 0] = source[j * 4 + 2];
+				source[j * 4 + 2] = swap;
+			}
+
+			// Write to the bitmap
+			Bitmap bmp = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+			BitmapData bmpData = bmp.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.WriteOnly, PixelFormat.Format32bppArgb);
+			IntPtr data = bmpData.Scan0;
+			Marshal.Copy(source, 0, data, source.Length);
+			bmp.UnlockBits(bmpData);
+
+			// Skip the rest of the mips
+			for (int i = 1; i < mipCount; i++) {
+				size = reader.ReadInt32();
+				reader.BaseStream.Position += size;
+			}
+
+			return bmp;
+		}
+
+		private static void SkipList(BinaryReader reader, int objSize) {
+			reader.Read7BitEncodedInt();
+			int count = reader.ReadInt32();
+			reader.BaseStream.Position += count * objSize;
+		}
+		private static void SkipCharList(BinaryReader reader) {
+			reader.Read7BitEncodedInt();
+			int count = reader.ReadInt32();
+			reader.ReadChars(count);
 		}
 
 		public static bool CompareBytes(byte[] a, byte[] b) {

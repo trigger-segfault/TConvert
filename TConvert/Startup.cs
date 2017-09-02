@@ -7,14 +7,15 @@ using System.Threading;
 using System.Threading.Tasks;
 
 namespace TConvert {
+	/**<summary>The class defining the entry point to the program.</summary>*/
 	static class Startup {
 		//============= MAIN =============
 		#region Main
 
+		/**<summary>The entry point to the program.</summary>*/
 		[STAThread]
 		static void Main(string[] args) {
-
-#if !(CONSOLE)
+			#if !(CONSOLE)
 			if (args.Length > 0) {
 				AttachConsole(-1);
 				CommandLine.ParseCommand(args);
@@ -24,13 +25,13 @@ namespace TConvert {
 				app.InitializeComponent();
 				app.Run(new MainWindow());
 			}
-#else
+			#else
 			CommandLine.ParseCommand(args);
-#endif
+			#endif
 		}
 
 		[DllImport("kernel32.dll")]
-		private static extern bool AttachConsole(int pid);
+		static extern bool AttachConsole(int pid);
 
 		#endregion
 	}

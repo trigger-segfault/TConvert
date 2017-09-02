@@ -313,13 +313,49 @@ namespace TConvert.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
         public bool AutoCloseCmdProgress {
             get {
                 return ((bool)(this["AutoCloseCmdProgress"]));
             }
             set {
                 this["AutoCloseCmdProgress"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool CompressImages {
+            get {
+                return ((bool)(this["CompressImages"]));
+            }
+            set {
+                this["CompressImages"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool CompletionSound {
+            get {
+                return ((bool)(this["CompletionSound"]));
+            }
+            set {
+                this["CompletionSound"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool ExtractAllowFonts {
+            get {
+                return ((bool)(this["ExtractAllowFonts"]));
+            }
+            set {
+                this["ExtractAllowFonts"] = value;
             }
         }
     }

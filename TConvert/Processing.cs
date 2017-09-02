@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Shell;
 using System.Windows.Threading;
 using System.Xml;
 using TConvert.Convert;
@@ -17,22 +19,54 @@ using TConvert.Windows;
 #endif
 
 namespace TConvert {
+	/**<summary>A log error.</summary>*/
 	public struct LogError {
+		/**<summary>True if the log item is a warning and not an error.</summary>*/
 		public bool IsWarning;
+		/**<summary>The log message.</summary>*/
 		public string Message;
+		/**<summary>The error/warning reason.</summary>*/
 		public string Reason;
+		/**<summary>Constructs a log error.</summary>*/
 		public LogError(bool isWarning, string message, string reason) {
 			IsWarning = isWarning;
 			Message = message;
 			Reason = reason;
 		}
 	}
-	public class Script {
-		public List<PathIOPair> Backups;
-		public List<PathIOPair> Restores;
-		public List<PathIOPair> Extracts;
-		public List<PathIOPair> Converts;
+	/**<summary>A pair of input and output paths.</summary>*/
+	public struct PathPair {
+		/**<summary>The input path.</summary>*/
+		public string Input;
+		/**<summary>The output path.</summary>*/
+		public string Output;
+		/**<summary>True if compression should be used.</summary>*/
+		public bool Compress;
+		/**<summary>Constructs a path pair.</summary>*/
+		public PathPair(string input, string output) {
+			Input = input;
+			Output = output;
+			Compress = false;
+		}
+		/**<summary>Constructs a path pair.</summary>*/
+		public PathPair(string input, string output, bool compress) {
+			Input = input;
+			Output = output;
+			Compress = compress;
+		}
 	}
+	/**<summary>A loaded script.</summary>*/
+	public class Script {
+		/**<summary>The list of backup directories.</summary>*/
+		public List<PathPair> Backups;
+		/**<summary>The list of restore directories.</summary>*/
+		public List<PathPair> Restores;
+		/**<summary>The list of extract files.</summary>*/
+		public List<PathPair> Extracts;
+		/**<summary>The list of convert files.</summary>*/
+		public List<PathPair> Converts;
+	}
+	/**<summary>The process modes available.</summary>*/
 	public enum ProcessModes {
 		Any,
 		Extract,
@@ -41,77 +75,163 @@ namespace TConvert {
 		Restore,
 		Script
 	}
-	public static class Program {
+	/**<summary>Processes file requests.</summary>*/
+	public static class Processing {
+		//========== CONSTANTS ===========
+		#region Constants
+
+		/**<summary>The duration before updating the progress again.</summary>*/
+		private static readonly TimeSpan UpdateSpan = TimeSpan.FromMilliseconds(50);
+
+		#endregion
 		//=========== MEMBERS ============
 		#region Members
+		//--------------------------------
+		#region Processing
 
-		private static TimeSpan UpdateSpan = TimeSpan.FromMilliseconds(50);
+		/**<summary>The lasy time the progress was updated.</summary>*/
 		private static DateTime lastUpdate = DateTime.MinValue;
-
+		/**<summary>The total number of files to process.</summary>*/
 		private static int totalFiles = 0;
+		/**<summary>The number of files completed.</summary>*/
 		private static int filesCompleted = 0;
+		/**<summary>The list of errors and warnings that occurred.</summary>*/
+		private static List<LogError> errorLog = new List<LogError>();
+		/**<summary>True if an error occurred.</summary>*/
+		//private static bool errorOccurred = false;
+		/**<summary>True if an warning occurred.</summary>*/
+		//private static bool warningOccurred = false;
+		/**<summary>True if images should be compressed.</summary>*/
+		private static bool compressImages = true;
+		/**<summary>True if a sound is played upon completion.</summary>*/
+		private static bool completionSound;
+
+		#endregion
+		//--------------------------------
+		#region Console Only
+
+		/**<summary>The starting X position of the console output.</summary>*/
+		private static int consoleX;
+		/**<summary>The starting Y position of the console output.</summary>*/
+		private static int consoleY;
+		/**<summary>True if there's no console output.</summary>*/
+		private static bool silent;
+		/**<summary>The start time of the console operation.</summary>*/
+		private static DateTime startTime;
+		
+		#endregion
+		//--------------------------------
+		#region Window Only
+
 		#if !(CONSOLE)
 		private static ProgressWindow progressWindow;
 		private static bool autoCloseProgress;
 		private static bool console = false;
 		#endif
-
-		private static List<LogError> errorLog = new List<LogError>();
-		private static DateTime startTime;
-		private static bool silent;
-
+			
 		#endregion
-		//=========== PROGRESS ===========
-		#region Progress
+		//--------------------------------
+		#endregion
+		//=========== STARTING ===========
+		#region Starting
 
 		#if !(CONSOLE)
-		public static void StartProgressThread(Window owner, string message, bool autoClose, Thread thread) {
+		/**<summary>Starts a progress window processing thread.</summary>*/
+		public static void StartProgressThread(Window owner, string message, bool autoClose, bool compress, bool sound, Thread thread) {
 			console = false;
+			compressImages = compress;
+			completionSound = sound;
 			lastUpdate = DateTime.MinValue;
 			autoCloseProgress = autoClose;
 			filesCompleted = 0;
 			totalFiles = 0;
-			progressWindow = new ProgressWindow(thread);
+			errorLog.Clear();
+			progressWindow = new ProgressWindow(thread, OnProgressCancel);
 			if (owner != null) {
 				progressWindow.WindowStartupLocation = WindowStartupLocation.CenterOwner;
 				progressWindow.Owner = owner;
 			}
 			if (Application.Current.MainWindow == null)
 				Application.Current.MainWindow = progressWindow;
-			progressWindow.ShowDialog();
-			progressWindow = null;
-			filesCompleted = 0;
-			totalFiles = 0;
+			// Prevent Explorer from freazing until the progress window is closed
+			Thread showThread = new Thread(() => {
+				Application.Current.Dispatcher.Invoke(() => {
+					progressWindow.ShowDialog();
+				});
+			});
+			showThread.Start();
 		}
 		#endif
-		public static void StartConsoleThread(string message, bool silent, Thread thread) {
+		/**<summary>Starts a console processing thread.</summary>*/
+		public static void StartConsoleThread(string message, bool silent, bool compress, bool sound, Thread thread) {
 			#if !(CONSOLE)
 			console = true;
 			#endif
-			Program.silent = silent;
-			UpdateSpan = TimeSpan.FromMilliseconds(50);
+			completionSound = sound;
+			compressImages = compress;
+			Processing.silent = silent;
 			startTime = DateTime.Now;
 			lastUpdate = DateTime.MinValue;
 			filesCompleted = 0;
 			totalFiles = 0;
-			if (!silent) {
-				if (!Console.IsOutputRedirected) {
-					Console.Clear();
-					Console.SetCursorPosition(0, 0);
-				}
-				Console.WriteLine("Time: " + (DateTime.Now - startTime).ToString(@"m\:ss"));
-				Console.WriteLine(message);
-			}
+			errorLog.Clear();
+			consoleX = Console.CursorLeft;
+			consoleY = Console.CursorTop;
+			WriteTimeAndPercentage(message);
 			thread.Start();
+			// Wait for the thread to finish
 			thread.Join();
-			filesCompleted = 0;
-			totalFiles = 0;
 			if (!silent)
 				Console.WriteLine();
 			#if !(CONSOLE)
 			Console.Write("Press enter to continue...");
 			#endif
 		}
+
+		#endregion
+		//=========== PROGRESS ===========
+		#region Progress
+
+		/**<summary>Updates the progress on the console.</summary>*/
+		private static void WriteTimeAndPercentage(string message, bool finished = false) {
+			if (!silent) {
+				// Prepare to overwrite the leftover message
+				int oldX = Console.CursorLeft;
+				int oldY = Console.CursorTop;
+				int oldXY = oldY * Console.BufferWidth + oldX;
+				if (!Console.IsOutputRedirected) {
+					Console.SetCursorPosition(consoleX, consoleY);
+				}
+
+				string timeStr = (finished ? "Total " : "");
+				timeStr += "Time: " + (DateTime.Now - startTime).ToString(@"m\:ss");
+				timeStr += " (" + (int)(totalFiles == 0 ? 0 : ((double)filesCompleted / totalFiles * 100)) + "%)";
+				timeStr += "      ";
+				Console.WriteLine(timeStr);
+				Console.Write(message);
+
+				// Overwrite the leftover message
+				if (!Console.IsOutputRedirected) {
+					int newX = Console.CursorLeft;
+					int newY = Console.CursorTop;
+					int newXY = newY * Console.BufferWidth + newX;
+					if (newXY < oldXY) {
+						Console.Write(new string(' ',
+							(oldY - newY) * Console.BufferWidth + (oldX - newX)
+						));
+					}
+				}
+			}
+		}
+		/**<summary>Called when the progress window is canceled.</summary>*/
+		private static void OnProgressCancel() {
+			ErrorLogger.Close();
+			if (errorLog.Count > 0) {
+				ShowErrorLog();
+				errorLog.Clear();
+			}
+		}
+		/**<summary>Called to update the progress with a message.</summary>*/
 		public static void UpdateProgress(string message, bool forceUpdate = false) {
 			#if !(CONSOLE)
 			if (progressWindow != null) {
@@ -125,68 +245,64 @@ namespace TConvert {
 			else if (console)
 			#endif
 			{
-				if ((lastUpdate + UpdateSpan < DateTime.Now || forceUpdate) && !silent) {
-					if (!Console.IsOutputRedirected) {
-						Console.Clear();
-						Console.SetCursorPosition(0, 0);
-					}
-					Console.WriteLine("Time: " + (DateTime.Now - startTime).ToString(@"m\:ss"));
-					Console.WriteLine(message);
+				if (lastUpdate + UpdateSpan < DateTime.Now || forceUpdate) {
+					WriteTimeAndPercentage(message);
 					lastUpdate = DateTime.Now;
 				}
 			}
 		}
-		public static void FinishProgress(string message, bool final = true) {
+		/**<summary>Called to finish the progress with a message.</summary>*/
+		public static void FinishProgress(string message) {
 			#if !(CONSOLE)
 			if (progressWindow != null) {
 				progressWindow.Dispatcher.Invoke(() => {
-					progressWindow.Finish(message, final && autoCloseProgress);
+					progressWindow.Finish(message, errorLog.Count > 0);
 				});
-				if (final) {
-					ErrorLogger.Close();
-					if (errorLog.Count > 0) {
-						ShowErrorLog();
-						errorLog.Clear();
-					}
+				ErrorLogger.Close();
+				if (errorLog.Count > 0) {
+					if (completionSound)
+						SystemSounds.Exclamation.Play();
+					ShowErrorLog();
+					errorLog.Clear();
+				}
+				else if (completionSound) {
+					SystemSounds.Asterisk.Play();
+				}
+				if (autoCloseProgress) {
+					progressWindow.Dispatcher.Invoke(() => {
+						progressWindow.Close();
+					});
 				}
 			}
 			else if (console)
 			#endif
 			{
-				if (!silent) {
-					if (!Console.IsOutputRedirected) {
-						Console.Clear();
-						Console.SetCursorPosition(0, 0);
-					}
-					Console.WriteLine("Total Time: " + (DateTime.Now - startTime).ToString(@"m\:ss"));
-					Console.WriteLine(message);
-				}
-				if (final) {
-					ErrorLogger.Close();
-					if (errorLog.Count > 0) {
-						ShowErrorLog();
-						errorLog.Clear();
-					}
+				WriteTimeAndPercentage(message);
+				ErrorLogger.Close();
+				if (errorLog.Count > 0) {
+					ShowErrorLog();
+					errorLog.Clear();
 				}
 			}
 		}
+		/**<summary>Shows the error log if necissary.</summary>*/
 		public static void ShowErrorLog() {
 			#if !(CONSOLE)
 			if (!console) {
-				DispatcherObject dispatcher;
-				Window window = null;
-				if (progressWindow != null) {
-					window = progressWindow;
-					dispatcher = window;
-				}
-				else if (App.Current.MainWindow != null) {
-					window = App.Current.MainWindow;
-					dispatcher = window;
-				}
-				else {
-					dispatcher = Application.Current;
-				}
-				dispatcher.Dispatcher.Invoke(() => {
+				App.Current.Dispatcher.Invoke(() => {
+					DispatcherObject dispatcher;
+					Window window = null;
+					if (progressWindow != null && !autoCloseProgress) {
+						window = progressWindow;
+						dispatcher = window;
+					}
+					else if (App.Current.MainWindow != null) {
+						window = App.Current.MainWindow;
+						dispatcher = window;
+					}
+					else {
+						dispatcher = Application.Current;
+					}
 					ErrorLogWindow.Show(window, errorLog.ToArray());
 					errorLog.Clear();
 				});
@@ -202,20 +318,26 @@ namespace TConvert {
 				}
 			}
 		}
-
-		public static void LogWarning(string message, string reason = "") {
-			errorLog.Add(new LogError(true, message, reason));
-			ErrorLogger.WriteLine("Warning: " + message);
-			if (reason != String.Empty)
-				ErrorLogger.WriteLine("    Reason: " + reason);
-		}
+		/**<summary>Logs an error.</summary>*/
 		public static void LogError(string message, string reason = "") {
 			errorLog.Add(new LogError(false, message, reason));
 			ErrorLogger.WriteLine("Error: " + message);
 			if (reason != String.Empty)
 				ErrorLogger.WriteLine("    Reason: " + reason);
 		}
+		/**<summary>Logs a warning.</summary>*/
+		public static void LogWarning(string message, string reason = "") {
+			errorLog.Add(new LogError(true, message, reason));
+			ErrorLogger.WriteLine("Warning: " + message);
+			if (reason != String.Empty)
+				ErrorLogger.WriteLine("    Reason: " + reason);
+		}
 
+		#endregion
+		//========== PROCESSING ==========
+		#region Processing
+
+		/**<summary>Processes drop files.</summary>*/
 		public static void ProcessDropFiles(string[] extractFiles, string[] convertFiles, string[] scriptFiles) {
 			List<Script> scripts = new List<Script>();
 
@@ -224,11 +346,11 @@ namespace TConvert {
 				if (script != null) {
 					scripts.Add(script);
 					totalFiles += script.Extracts.Count + script.Converts.Count;
-					foreach (PathIOPair backup in script.Backups) {
-						totalFiles += Helpers.GetFileCount(backup.InPath);
+					foreach (PathPair backup in script.Backups) {
+						totalFiles += Helpers.GetFileCount(backup.Input);
 					}
-					foreach (PathIOPair restore in script.Restores) {
-						totalFiles += Helpers.GetFileCount(restore.InPath);
+					foreach (PathPair restore in script.Restores) {
+						totalFiles += Helpers.GetFileCount(restore.Input);
 					}
 				}
 			}
@@ -243,8 +365,9 @@ namespace TConvert {
 			}
 			FinishProgress("Finished Processing Files");
 		}
-		public static void ProcessDropFiles(ProcessModes mode, string[] inputFiles, string[] outputFiles) {
-			List<PathIOPair> files = new List<PathIOPair>();
+		/**<summary>Processes console files.</summary>*/
+		public static void ProcessFiles(ProcessModes mode, string[] inputFiles, string[] outputFiles) {
+			List<PathPair> files = new List<PathPair>();
 
 			// Allow processing of directories too
 			for (int i = 0; i < inputFiles.Length; i++) {
@@ -253,21 +376,21 @@ namespace TConvert {
 				if (Directory.Exists(input)) {
 					string[] dirFiles = Helpers.FindAllFiles(input);
 					foreach (string dirFile in dirFiles) {
-						files.Add(new PathIOPair { InPath=dirFile, OutPath=Helpers.GetOutputPath(dirFile, input, output) });
+						files.Add(new PathPair(dirFile, Helpers.GetOutputPath(dirFile, input, output)));
 					}
 				}
 				else {
-					files.Add(new PathIOPair { InPath=input, OutPath=output });
+					files.Add(new PathPair(input, output));
 				}
 			}
 
 			if (mode != ProcessModes.Backup && mode != ProcessModes.Restore) {
-				List<PathIOPair> extractFiles = new List<PathIOPair>();
-				List<PathIOPair> convertFiles = new List<PathIOPair>();
+				List<PathPair> extractFiles = new List<PathPair>();
+				List<PathPair> convertFiles = new List<PathPair>();
 				List<string> scriptFiles = new List<string>();
 
-				foreach (PathIOPair pair in files) {
-					string ext = Path.GetExtension(pair.InPath).ToLower();
+				foreach (PathPair pair in files) {
+					string ext = Path.GetExtension(pair.Input).ToLower();
 					switch (ext) {
 					case ".xnb":
 					case ".xwb":
@@ -283,7 +406,7 @@ namespace TConvert {
 						break;
 					case ".xml":
 						if (mode == ProcessModes.Any || mode == ProcessModes.Script)
-							scriptFiles.Add(pair.InPath);
+							scriptFiles.Add(pair.Input);
 						break;
 					}
 				}
@@ -294,21 +417,21 @@ namespace TConvert {
 					if (script != null) {
 						scripts.Add(script);
 						totalFiles += script.Extracts.Count + script.Converts.Count;
-						foreach (PathIOPair backup in script.Backups) {
-							totalFiles += Helpers.GetFileCount(backup.InPath);
+						foreach (PathPair backup in script.Backups) {
+							totalFiles += Helpers.GetFileCount(backup.Input);
 						}
-						foreach (PathIOPair restore in script.Restores) {
-							totalFiles += Helpers.GetFileCount(restore.InPath);
+						foreach (PathPair restore in script.Restores) {
+							totalFiles += Helpers.GetFileCount(restore.Input);
 						}
 					}
 				}
 				totalFiles += extractFiles.Count + convertFiles.Count;
 
 				foreach (var pair in extractFiles) {
-					ExtractFile2(pair.InPath, pair.OutPath);
+					ExtractFile2(pair.Input, pair.Output);
 				}
 				foreach (var pair in convertFiles) {
-					ConvertFile2(pair.InPath, pair.OutPath);
+					ConvertFile2(pair.Input, pair.Output, compressImages);
 				}
 				foreach (Script script in scripts) {
 					RunScript(script, false);
@@ -316,12 +439,12 @@ namespace TConvert {
 			}
 			else if (mode == ProcessModes.Backup) {
 				foreach (var pair in files) {
-					BackupFile2(pair.InPath, pair.OutPath);
+					BackupFile2(pair.Input, pair.Output);
 				}
 			}
 			else if (mode == ProcessModes.Restore) {
 				foreach (var pair in files) {
-					RestoreFile2(pair.InPath, pair.OutPath);
+					RestoreFile2(pair.Input, pair.Output);
 				}
 			}
 			
@@ -332,18 +455,20 @@ namespace TConvert {
 		//========== EXTRACTING ==========
 		#region Extracting
 
-		public static void ExtractAll(string inputDirectory, string outputDirectory, bool includeImages = true, bool includeSounds = true, bool includeWaveBank = true) {
+		/**<summary>Extracts all files in a directory.</summary>*/
+		public static void ExtractAll(string inputDirectory, string outputDirectory, bool includeImages, bool includeSounds, bool includeFonts, bool includeWaveBank) {
 			string[] files = Helpers.FindAllFiles(inputDirectory);
 			totalFiles += files.Length;
 
 			int extractCount = 0;
 			foreach (string inputFile in files) {
-				if (ExtractFile(inputFile, inputDirectory, outputDirectory, includeImages, includeSounds, includeWaveBank))
+				if (ExtractFile(inputFile, inputDirectory, outputDirectory, includeImages, includeSounds, includeFonts, includeWaveBank))
 					extractCount++;
 			}
 
 			FinishProgress("Finished Extracting " + extractCount + " Files");
 		}
+		/**<summary>Extracts a single file.</summary>*/
 		public static void ExtractSingleFile(string inputFile, string outputFile) {
 			totalFiles += 1;
 			
@@ -351,26 +476,28 @@ namespace TConvert {
 
 			FinishProgress("Finished Extracting");
 		}
-		public static void ExtractDropFiles(string[] inputFiles) {
+		/**<summary>Extracts drop files.</summary>*/
+		private static void ExtractDropFiles(string[] inputFiles) {
 
 			foreach (string inputFile in inputFiles) {
 				string inputDirectory = Path.GetDirectoryName(inputFile);
 				ExtractFile(inputFile, inputDirectory, inputDirectory);
 			}
 
-			FinishProgress("Finished Extracting", false);
+			UpdateProgress("Finished Extracting", true);
 		}
-		public static bool ExtractFile(string inputFile, string inputDirectory, string outputDirectory, bool includeImages = true, bool includeSounds = true, bool includeWaveBank = true) {
+		/**<summary>Extracts a file.</summary>*/
+		private static bool ExtractFile(string inputFile, string inputDirectory, string outputDirectory, bool includeImages = true, bool includeSounds = true, bool includeFonts = true, bool includeWaveBank = true) {
 			bool extracted = false;
 			try {
 				string outputFile = Helpers.GetOutputPath(inputFile, inputDirectory, outputDirectory);
 				string ext = Path.GetExtension(inputFile).ToLower();
-				if ((ext == ".xnb" && (includeImages || includeSounds)) || (ext == ".xwb" && includeWaveBank)) {
+				if ((ext == ".xnb" && (includeImages || includeSounds || includeFonts)) || (ext == ".xwb" && includeWaveBank)) {
 					UpdateProgress("Extracting: " + Helpers.GetRelativePath(inputFile, inputDirectory), ext == ".xwb");
 				}
-				if (ext == ".xnb" && (includeImages || includeSounds)) {
+				if (ext == ".xnb" && (includeImages || includeSounds || includeFonts)) {
 					Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
-					if (XnbExtractor.Extract(inputFile, outputFile, true, includeImages, includeSounds))
+					if (XnbExtractor.Extract(inputFile, outputFile, true, includeImages, includeSounds, includeFonts))
 						extracted = true;
 				}
 				else if (ext == ".xwb" && includeWaveBank) {
@@ -400,8 +527,8 @@ namespace TConvert {
 			filesCompleted++;
 			return extracted;
 		}
-
-		public static bool ExtractFile2(string inputFile, string outputFile) {
+		/**<summary>Extracts a file with different parameters.</summary>*/
+		private static bool ExtractFile2(string inputFile, string outputFile) {
 			bool extracted = false;
 			try {
 				string ext = Path.GetExtension(inputFile).ToLower();
@@ -410,7 +537,7 @@ namespace TConvert {
 				}
 				if (ext == ".xnb") {
 					Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
-					if (XnbExtractor.Extract(inputFile, outputFile, true, true, true))
+					if (XnbExtractor.Extract(inputFile, outputFile, true, true, true, true))
 						extracted = true;
 				}
 				else if (ext == ".xwb") {
@@ -445,6 +572,7 @@ namespace TConvert {
 		//========== CONVERTING ==========
 		#region Converting
 
+		/**<summary>Converts all files in a directory.</summary>*/
 		public static void ConvertAll(string inputDirectory, string outputDirectory, bool includeImages, bool includeSounds) {
 			string[] files = Helpers.FindAllFiles(inputDirectory);
 			totalFiles += files.Length;
@@ -457,6 +585,7 @@ namespace TConvert {
 
 			FinishProgress("Finished Converting " + convertCount + " Files");
 		}
+		/**<summary>Converts a single file.</summary>*/
 		public static void ConvertSingleFile(string inputFile, string outputFile) {
 			totalFiles += 1;
 			
@@ -464,16 +593,18 @@ namespace TConvert {
 
 			FinishProgress("Finished Converting");
 		}
-		public static void ConvertDropFiles(string[] inputFiles) {
+		/**<summary>Converts drop files.</summary>*/
+		private static void ConvertDropFiles(string[] inputFiles) {
 
 			foreach (string inputFile in inputFiles) {
 				string inputDirectory = Path.GetDirectoryName(inputFile);
 				ConvertFile(inputFile, inputDirectory, inputDirectory);
 			}
 
-			FinishProgress("Finished Converting", false);
+			UpdateProgress("Finished Converting", true);
 		}
-		public static bool ConvertFile(string inputFile, string inputDirectory, string outputDirectory, bool includeImages = true, bool includeSounds = true) {
+		/**<summary>Converts a file.</summary>*/
+		private static bool ConvertFile(string inputFile, string inputDirectory, string outputDirectory, bool includeImages = true, bool includeSounds = true) {
 			bool converted = false;
 			try {
 				string outputFile = Helpers.GetOutputPath(inputFile, inputDirectory, outputDirectory);
@@ -483,7 +614,7 @@ namespace TConvert {
 				}
 				if ((ext == ".png" || ext == ".bmp" || ext == ".jpg") && includeImages) {
 					Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
-					if (PngConverter.Convert(inputFile, outputFile, true, XCompress.IsAvailable, true))
+					if (PngConverter.Convert(inputFile, outputFile, true, compressImages, true))
 						converted = true;
 				}
 				else if (ext == ".wav" && includeSounds) {
@@ -516,7 +647,8 @@ namespace TConvert {
 			filesCompleted++;
 			return converted;
 		}
-		public static bool ConvertFile2(string inputFile, string outputFile) {
+		/**<summary>Converts a file with different paramters.</summary>*/
+		private static bool ConvertFile2(string inputFile, string outputFile, bool compress) {
 			bool converted = false;
 			try {
 				string ext = Path.GetExtension(inputFile).ToLower();
@@ -525,7 +657,7 @@ namespace TConvert {
 				}
 				if (ext == ".png" || ext == ".bmp" || ext == ".jpg") {
 					Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
-					if (PngConverter.Convert(inputFile, outputFile, true, XCompress.IsAvailable, true))
+					if (PngConverter.Convert(inputFile, outputFile, true, compress, true))
 						converted = true;
 				}
 				else if (ext == ".wav") {
@@ -563,6 +695,7 @@ namespace TConvert {
 		//========== SCRIPTING ===========
 		#region Scripting
 
+		/**<summary>Loads and runs a script.</summary>*/
 		public static void RunScript(string inputScript) {
 			UpdateProgress("Loading Script...", true);
 
@@ -570,11 +703,11 @@ namespace TConvert {
 
 			// Add up all the files and restores
 			totalFiles += script.Extracts.Count + script.Converts.Count;
-			foreach (PathIOPair backup in script.Backups) {
-				totalFiles += Helpers.GetFileCount(backup.InPath);
+			foreach (PathPair backup in script.Backups) {
+				totalFiles += Helpers.GetFileCount(backup.Input);
 			}
-			foreach (PathIOPair restore in script.Restores) {
-				totalFiles += Helpers.GetFileCount(restore.InPath);
+			foreach (PathPair restore in script.Restores) {
+				totalFiles += Helpers.GetFileCount(restore.Input);
 			}
 
 			if (script != null) {
@@ -584,45 +717,46 @@ namespace TConvert {
 				FinishProgress("Finished Script");
 			}
 		}
+		/**<summary>Runs a a preloaded script.</summary>*/
 		public static void RunScript(Script script, bool final = true) {
 
 			int backupCount = 0;
-			foreach (PathIOPair backup in script.Backups) {
-				if (!Directory.Exists(backup.InPath)) {
-					LogError("Backing Up: " + backup.InPath, "Directory does not exist");
+			foreach (PathPair backup in script.Backups) {
+				if (!Directory.Exists(backup.Input)) {
+					LogError("Backing Up: " + backup.Input, "Directory does not exist");
 					continue;
 				}
-				string[] backupFiles = Helpers.FindAllFiles(backup.InPath);
+				string[] backupFiles = Helpers.FindAllFiles(backup.Input);
 
 				foreach (string inputFile in backupFiles) {
-					if (BackupFile(inputFile, backup.InPath, backup.OutPath))
+					if (BackupFile(inputFile, backup.Input, backup.Output))
 						backupCount++;
 				}
 			}
 
 			int restoreCount = 0;
-			foreach (PathIOPair restore in script.Restores) {
-				if (!Directory.Exists(restore.InPath)) {
-					LogError("Restoring: " + restore.InPath, "Directory does not exist");
+			foreach (PathPair restore in script.Restores) {
+				if (!Directory.Exists(restore.Input)) {
+					LogError("Restoring: " + restore.Input, "Directory does not exist");
 					continue;
 				}
-				string[] restoreFiles = Helpers.FindAllFiles(restore.InPath);
+				string[] restoreFiles = Helpers.FindAllFiles(restore.Input);
 				
 				foreach (string inputFile in restoreFiles) {
-					if (RestoreFile(inputFile, restore.InPath, restore.OutPath))
+					if (RestoreFile(inputFile, restore.Input, restore.Output))
 						restoreCount++;
 				}
 			}
 
 			int extractCount = 0;
-			foreach (PathIOPair file in script.Extracts) {
-				if (ExtractFile2(file.InPath, file.OutPath))
+			foreach (PathPair file in script.Extracts) {
+				if (ExtractFile2(file.Input, file.Output))
 					extractCount++;
 			}
 
 			int convertCount = 0;
-			foreach (PathIOPair file in script.Converts) {
-				if (ConvertFile2(file.InPath, file.OutPath))
+			foreach (PathPair file in script.Converts) {
+				if (ConvertFile2(file.Input, file.Output, file.Compress))
 					convertCount++;
 			}
 			string message = "Finished ";
@@ -640,12 +774,16 @@ namespace TConvert {
 				message += "Backing Up " + backupCount + " Files";
 			else
 				message += "Script";
-			FinishProgress(message, final);
+			if (final)
+				FinishProgress(message);
+			else
+				UpdateProgress(message, true);
 		}
+		/**<summary>Loads a script.</summary>*/
 		public static Script LoadScript(string inputScript) {
-			List<PathIOPair> files = new List<PathIOPair>();
-			List<PathIOPair> backups = new List<PathIOPair>();
-			List<PathIOPair> restores = new List<PathIOPair>();
+			List<PathPair> files = new List<PathPair>();
+			List<PathPair> backups = new List<PathPair>();
+			List<PathPair> restores = new List<PathPair>();
 
 			try {
 				Directory.SetCurrentDirectory(Path.GetDirectoryName(inputScript));
@@ -694,7 +832,7 @@ namespace TConvert {
 
 			// Find all the files and restores
 			if (root != null) {
-				LoadScriptFolder(root, files, backups, restores, "", "", true);
+				LoadScriptFolder(root, files, backups, restores, "", "", compressImages, true);
 			}
 			else {
 				LogError("Reading Script", "No root ConvertScript");
@@ -702,23 +840,40 @@ namespace TConvert {
 				return null;
 			}
 
-			List<PathIOPair> extracts = new List<PathIOPair>();
-			List<PathIOPair> converts = new List<PathIOPair>();
-			foreach (PathIOPair file in files) {
-				string ext = Path.GetExtension(file.InPath).ToLower();
+			List<PathPair> extracts = new List<PathPair>();
+			List<PathPair> converts = new List<PathPair>();
+			foreach (PathPair file in files) {
+				string ext = Path.GetExtension(file.Input).ToLower();
 				switch (ext) {
-				case ".xnb": case ".xwb": extracts.Add(file); break;
-				default: converts.Add(file); break;
+				case ".xnb": case ".xwb":
+					extracts.Add(file); break;
+				case ".png": case ".bmp": case ".jpg":
+					converts.Add(file); break;
 				}
 			}
 			
 			return new Script { Extracts=extracts, Converts=converts, Backups=backups, Restores=restores };
 		}
-		private static void LoadScriptFolder(XmlElement element, List<PathIOPair> files, List<PathIOPair> backups, List<PathIOPair> restores, string output, string path, bool isRoot = false) {
+		/**<summary>Loads a script folder or root element.</summary>*/
+		private static void LoadScriptFolder(XmlElement element, List<PathPair> files, List<PathPair> backups, List<PathPair> restores, string output, string path, bool compress, bool isRoot = false) {
 			string newOutput = output;
+			bool newCompress = compress;
 			XmlAttribute attribute;
 			foreach (XmlElement next in element) {
 				switch (next.Name) {
+				case "Compress":
+					attribute = next.Attributes["Value"];
+					if (attribute != null) {
+						bool nextCompress;
+						if (bool.TryParse(attribute.InnerText, out nextCompress))
+							newCompress = nextCompress;
+						else
+							LogWarning("Reading Script", "Failed to parse Compress attribute Value.");
+					}
+					else {
+						LogWarning("Reading Script", "No Value attribute in Compress.");
+					}
+					break;
 				case "Backup":
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
@@ -727,7 +882,7 @@ namespace TConvert {
 							nextPath = attribute.InnerText;
 						else
 							nextPath = Path.Combine(path, attribute.InnerText);
-						backups.Add(new PathIOPair { InPath=nextPath, OutPath=newOutput });
+						backups.Add(new PathPair(nextPath, newOutput));
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in Backup.");
@@ -741,7 +896,7 @@ namespace TConvert {
 							nextPath = attribute.InnerText;
 						else
 							nextPath = Path.Combine(path, attribute.InnerText);
-						restores.Add(new PathIOPair { InPath=nextPath, OutPath=newOutput });
+						restores.Add(new PathPair(nextPath, newOutput));
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in Restore.");
@@ -767,7 +922,7 @@ namespace TConvert {
 							nextPath = attribute.InnerText;
 						else
 							nextPath = Path.Combine(path, attribute.InnerText);
-						LoadScriptFolder(next, files, backups, restores, newOutput, nextPath);
+						LoadScriptFolder(next, files, backups, restores, newOutput, nextPath, newCompress);
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in Folder.");
@@ -777,10 +932,18 @@ namespace TConvert {
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
 						string nextPath;
+						bool nextCompress = newCompress;
 						if (path == string.Empty)
 							nextPath = attribute.InnerText;
 						else
 							nextPath = Path.Combine(path, attribute.InnerText);
+						attribute = next.Attributes["Compress"];
+						if (attribute != null) {
+							if (!bool.TryParse(attribute.InnerText, out nextCompress)) {
+								LogWarning("Reading Script", "Failed to parse File attribute Compress.");
+								nextCompress = newCompress;
+							}
+						}
 						attribute = next.Attributes["OutPath"];
 						if (attribute != null) {
 							string nextOutput;
@@ -790,9 +953,9 @@ namespace TConvert {
 								nextOutput = Path.Combine(newOutput, attribute.InnerText);
 							if (!Path.HasExtension(nextOutput))
 								nextOutput = Path.ChangeExtension(nextOutput, ".xnb");
-							files.Add(new PathIOPair { InPath=nextPath, OutPath=nextOutput });
+							files.Add(new PathPair(nextPath, nextOutput, nextCompress));
 						}
-						LoadScriptFile(next, files, newOutput, nextPath);
+						LoadScriptFile(next, files, newOutput, nextPath, nextCompress);
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in File.");
@@ -804,11 +967,26 @@ namespace TConvert {
 				}
 			}
 		}
-		private static void LoadScriptFile(XmlElement element, List<PathIOPair> files, string output, string path) {
+		/**<summary>Loads a script file.</summary>*/
+		private static void LoadScriptFile(XmlElement element, List<PathPair> files, string output, string path, bool compress) {
 			string newOutput = output;
+			bool newCompress = compress;
 			XmlAttribute attribute;
 			foreach (XmlElement next in element) {
 				switch (next.Name) {
+				case "Compress":
+					attribute = next.Attributes["Value"];
+					if (attribute != null) {
+						bool nextCompress;
+						if (bool.TryParse(attribute.InnerText, out nextCompress))
+							newCompress = nextCompress;
+						else
+							LogWarning("Reading Script", "Failed to parse Compress attribute Value.");
+					}
+					else {
+						LogWarning("Reading Script", "No Value attribute in Compress.");
+					}
+					break;
 				case "Output":
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
@@ -825,13 +1003,21 @@ namespace TConvert {
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
 						string nextOutput;
+						bool nextCompress = newCompress;
 						if (newOutput == string.Empty)
 							nextOutput = attribute.InnerText;
 						else
 							nextOutput = Path.Combine(newOutput, attribute.InnerText);
 						if (!Path.HasExtension(nextOutput))
 							nextOutput = Path.ChangeExtension(nextOutput, ".xnb");
-						files.Add(new PathIOPair { InPath=path, OutPath=nextOutput });
+						attribute = next.Attributes["Compress"];
+						if (attribute != null) {
+							if (!bool.TryParse(attribute.InnerText, out nextCompress)) {
+								LogWarning("Reading Script", "Failed to parse Out attribute Compress.");
+								nextCompress = newCompress;
+							}
+						}
+						files.Add(new PathPair(path, nextOutput, nextCompress));
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in Out");
@@ -848,6 +1034,7 @@ namespace TConvert {
 		//============ BACKUP ============
 		#region Backup
 
+		/**<summary>Backs up a directory.</summary>*/
 		public static void BackupFiles(string inputDirectory, string outputDirectory) {
 			string[] files = Helpers.FindAllFiles(inputDirectory);
 			totalFiles = files.Length;
@@ -858,6 +1045,7 @@ namespace TConvert {
 
 			FinishProgress("Finished Backing Up " + files.Length + " Files");
 		}
+		/**<summary>Restores a directory.</summary>*/
 		public static void RestoreFiles(string inputDirectory, string outputDirectory) {
 			string[] files = Helpers.FindAllFiles(inputDirectory);
 			totalFiles = files.Length;
@@ -870,7 +1058,8 @@ namespace TConvert {
 			
 			FinishProgress("Finished Restoring " + restoreCount + " Files");
 		}
-		public static bool BackupFile(string inputFile, string inputDirectory, string outputDirectory) {
+		/**<summary>Backs up a file.</summary>*/
+		private static bool BackupFile(string inputFile, string inputDirectory, string outputDirectory) {
 			bool backedUp = false;
 			try {
 				UpdateProgress("Backing Up: " + Helpers.GetRelativePath(inputFile, inputDirectory));
@@ -898,7 +1087,8 @@ namespace TConvert {
 			filesCompleted++;
 			return backedUp;
 		}
-		public static bool BackupFile2(string inputFile, string outputFile) {
+		/**<summary>Backs up a file with different parameters.</summary>*/
+		private static bool BackupFile2(string inputFile, string outputFile) {
 			bool backedUp = false;
 			try {
 				UpdateProgress("Backing Up: " + Path.GetFileName(inputFile));
@@ -925,7 +1115,8 @@ namespace TConvert {
 			filesCompleted++;
 			return backedUp;
 		}
-		public static bool RestoreFile(string inputFile, string inputDirectory, string outputDirectory) {
+		/**<summary>Restores a file.</summary>*/
+		private static bool RestoreFile(string inputFile, string inputDirectory, string outputDirectory) {
 			bool filedCopied = false;
 			try {
 				UpdateProgress("Restoring: " + Helpers.GetRelativePath(inputFile, inputDirectory));
@@ -961,7 +1152,8 @@ namespace TConvert {
 			filesCompleted++;
 			return filedCopied;
 		}
-		public static bool RestoreFile2(string inputFile, string outputFile) {
+		/**<summary>Restores a file with different parameters.</summary>*/
+		private static bool RestoreFile2(string inputFile, string outputFile) {
 			bool filedCopied = false;
 			try {
 				UpdateProgress("Restoring: " + Path.GetFileName(inputFile));

@@ -32,22 +32,49 @@ namespace TConvert.Util {
 	/// <item>Continue using standard Pinvoke methods for the desired functions in the DLL</item>
 	/// </list>
 	/// </summary>
-	public static class EmbeddedDlls {
+	public static class EmbeddedApps {
 		private static string tempFolder = "";
+		private const string TempFolderName = "TConvert";
+
+		/// <summary>
+		/// Extract DLLs from resources to temporary folder
+		/// </summary>
+		/// <param name="exeName">name of EXE file to create (including exe suffix)</param>
+		/// <param name="resourceBytes">The resource name (fully qualified)</param>
+		public static string ExtractEmbeddedExe(string exeName, byte[] resourceBytes) {
+			// The temporary folder holds one or more of the temporary EXEs
+			// It is made "unique" to avoid different versions of the EXE or architectures.
+			tempFolder = TempFolderName;
+
+			string dirName = Path.Combine(Path.GetTempPath(), tempFolder);
+			if (!Directory.Exists(dirName)) {
+				Directory.CreateDirectory(dirName);
+			}
+
+			// See if the file exists, avoid rewriting it if not necessary
+			string exePath = Path.Combine(dirName, exeName);
+			bool rewrite = true;
+			if (File.Exists(exePath)) {
+				byte[] existing = File.ReadAllBytes(exePath);
+				if (resourceBytes.SequenceEqual(existing)) {
+					rewrite = false;
+				}
+			}
+			if (rewrite) {
+				File.WriteAllBytes(exePath, resourceBytes);
+			}
+			return exePath;
+		}
 
 		/// <summary>
 		/// Extract DLLs from resources to temporary folder
 		/// </summary>
 		/// <param name="dllName">name of DLL file to create (including dll suffix)</param>
 		/// <param name="resourceBytes">The resource name (fully qualified)</param>
-		public static void ExtractEmbeddedDlls(string dllName, byte[] resourceBytes) {
-			Assembly assem = Assembly.GetExecutingAssembly();
-			string[] names = assem.GetManifestResourceNames();
-			AssemblyName an = assem.GetName();
-
+		public static string ExtractEmbeddedDll(string dllName, byte[] resourceBytes) {
 			// The temporary folder holds one or more of the temporary DLLs
 			// It is made "unique" to avoid different versions of the DLL or architectures.
-			tempFolder = an.Name;
+			tempFolder = TempFolderName;
 
 			string dirName = Path.Combine(Path.GetTempPath(), tempFolder);
 			if (!Directory.Exists(dirName)) {
@@ -80,6 +107,7 @@ namespace TConvert.Util {
 			if (rewrite) {
 				File.WriteAllBytes(dllPath, resourceBytes);
 			}
+			return dllPath;
 		}
 
 		[DllImport("kernel32", SetLastError = true, CharSet = CharSet.Unicode)]

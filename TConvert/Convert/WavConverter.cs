@@ -76,6 +76,7 @@ namespace TConvert.Convert {
 
 			using (FileStream stream = new FileStream(outputFile, FileMode.OpenOrCreate)) {
 				using (BinaryWriter writer = new BinaryWriter(stream)) {
+					stream.SetLength(0);
 					// Format identifier
 					writer.Write("XNB".ToCharArray());
 					// TargetPlatform Windows
@@ -87,7 +88,7 @@ namespace TConvert.Convert {
 					// File Size TODO
 					writer.Write(dataChunkSize + 105); //??  61?
 					// Type Reader count
-					Xnb.Write7BitEncodedInt(writer, 1);
+					writer.Write7BitEncodedInt(1);
 					// String reader name
 					writer.Write("Microsoft.Xna.Framework.Content.SoundEffectReader");
 					// reader version number
