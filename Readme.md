@@ -15,6 +15,10 @@ A combination tool for managing Terraria content resources. Convert, extract, ba
 * .NET Framwork 4.5.2 | [Offline Installer](https://www.microsoft.com/en-us/download/details.aspx?id=42642) | [Web Installer](https://www.microsoft.com/en-us/download/details.aspx?id=42643)
 * Windows 7 or later
 
+## Building from Source
+* Build with configuration *WinDebug* or *WinRelease* for the UI version.
+* Build with configuration *ConDebug* or *ConRelease* for the pure console version.
+
 ## Features
 * Extract image, sound, and font resources from Terraria's Xnb files, and extract songs from Terraria's Xwb wave bank.
 * Convert images and sounds back into Xnb format and copy them to the content directory.
