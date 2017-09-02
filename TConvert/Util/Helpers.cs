@@ -64,6 +64,18 @@ namespace TConvert.Util {
 			}
 			catch { }
 		}
+		/**<summary>Safely gets the full path.</summary>*/
+		public static string FixPathSafe(string path) {
+			try {
+				path = Path.GetFullPath(path);
+				if (path != string.Empty && (path.Last() == '\\' || path.Last() == '/'))
+					path = path.Remove(path.Length - 1);
+				return path;
+			}
+			catch {
+				return "";
+			}
+		}
 		/**<summary>Safely tests if a directory exists.</summary>*/
 		public static bool DirectoryExistsSafe(string path) {
 			try {

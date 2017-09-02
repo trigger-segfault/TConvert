@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TConvert"
         mc:Ignorable="d"
-        Title="Credits" Height="280" Width="350" Background="#FFECEEF1" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" SnapsToDevicePixels="True" UseLayoutRounding="True" Icon="/Resources/Icons/Credits.png">
+        Title="Credits" Height="332" Width="360" Background="#FFECEEF1" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" SnapsToDevicePixels="True" UseLayoutRounding="True" Icon="/Resources/Icons/Credits.png">
     <Grid>
         <Button Content="Close" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="80" IsDefault="True" Click="OnCloseClicked"/>
         <StackPanel Margin="10,10,10,37">
@@ -47,6 +47,18 @@
 
             <TextBlock TextWrapping="Wrap" Padding="5">
                 Font extraction thanks to  <Hyperlink NavigateUri="https://github.com/FNA-XNA/FNA" RequestNavigate="OnRequestNavigate">FNA-XNA</Hyperlink>.
+            </TextBlock>
+            <Separator Height="11" Margin="20,0">
+                <Separator.Background>
+                    <LinearGradientBrush StartPoint="0,0.5" EndPoint="1,0.5">
+                        <GradientStop Color="#FFA0A0A0" Offset="0"/>
+                        <GradientStop Color="#00A0A0A0" Offset="1"/>
+                    </LinearGradientBrush>
+                </Separator.Background>
+            </Separator>
+            
+            <TextBlock TextWrapping="Wrap" Padding="5">
+                Wave bank song conversion thanks to <Hyperlink NavigateUri="https://github.com/FFmpeg/FFmpeg" RequestNavigate="OnRequestNavigate">FFmpeg</Hyperlink>, which is under GNU Lesser General Public License version 2.1.
             </TextBlock>
             <Separator Height="11" Margin="20,0">
                 <Separator.Background>

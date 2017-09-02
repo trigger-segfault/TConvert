@@ -99,9 +99,15 @@ namespace TConvert.Convert {
 			if (changeExtension) {
 				outputFile = Path.ChangeExtension(outputFile, ".xnb");
 			}
+
+			// Throw more helpful exceptions than what Bitmap.ctor() throws.
 			if (!Directory.Exists(Path.GetDirectoryName(inputFile))) {
 				throw new DirectoryNotFoundException("Could not find a part of the path '" + inputFile + "'.");
 			}
+			else if (!File.Exists(inputFile)) {
+				throw new FileNotFoundException("Could not find file '" + inputFile + "'.");
+			}
+
 			using (Bitmap bmp = new Bitmap(inputFile)) {
 				using (FileStream stream = new FileStream(outputFile, FileMode.OpenOrCreate, FileAccess.Write)) {
 					using (BinaryWriter writer = new BinaryWriter(stream)) {

@@ -112,14 +112,16 @@
                             <System:String>Folder</System:String>
                             <System:String>File</System:String>
                         </ComboBox>
-
+                        <Button x:Name="buttonExtract" Content="Extract" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnExtract" IsDefault="True"/>
+                        <Button x:Name="buttonExtractUseTerraria" Content="Use Terraria" HorizontalAlignment="Right" Margin="0,12,90,0" VerticalAlignment="Top" Width="100" Click="OnExtractUseTerraria" IsTabStop="False" Focusable="False"/>
+                        
                         <Label x:Name="labelExtractInput" Content="Input Folder" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
-                        <TextBox x:Name="textBoxExtractInput" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnExtractInputChanged"/>
+                        <TextBox x:Name="textBoxExtractInput" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnExtractInputChanged"/>
                         <Button HorizontalAlignment="Right" Margin="0,47,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnExtractChangeInput">
                             <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
                         </Button>
                         <Label x:Name="labelExtractOutput" Content="Output Folder" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
-                        <TextBox x:Name="textBoxExtractOutput" Height="23" Margin="100,80,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnExtractOutputChanged"/>
+                        <TextBox x:Name="textBoxExtractOutput" Height="23" Margin="100,80,41,0" VerticalAlignment="Top" IsHitTestVisible="True" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnExtractOutputChanged"/>
                         <Button x:Name="buttonExtractOutput" HorizontalAlignment="Right" Margin="0,80,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnExtractChangeOutput">
                             <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
                         </Button>
@@ -127,12 +129,10 @@
                         <CheckBox x:Name="checkBoxExtractImages" Content="Images" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnExtractImagesChecked" IsTabStop="False"/>
                         <CheckBox x:Name="checkBoxExtractSounds" Content="Sounds" HorizontalAlignment="Left" Margin="75,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnExtractSoundsChecked" IsTabStop="False"/>
                         <CheckBox x:Name="checkBoxExtractFonts" Content="Fonts" HorizontalAlignment="Left" Margin="141,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnExtractFontsChecked" IsTabStop="False"/>
-                        <Button x:Name="buttonExtract" Content="Extract" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnExtract" IsDefault="True"/>
-                        <CheckBox x:Name="checkBoxExtractUseInput" Content="Use Input as Output" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" Click="OnExtractUseInputChecked" IsTabStop="False"/>
-                        <Button x:Name="buttonExtractUseTerraria" Content="Use Terraria" HorizontalAlignment="Right" Margin="0,12,90,0" VerticalAlignment="Top" Width="100" Click="OnExtractUseTerraria" IsTabStop="False" Focusable="False"/>
-                            <CheckBox x:Name="checkBoxExtractWaveBank" Content="Wave Bank" HorizontalAlignment="Left" Margin="197,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnExtractWaveBankChecked" IsTabStop="False"/>
+                        <CheckBox x:Name="checkBoxExtractWaveBank" Content="Wave Bank" HorizontalAlignment="Left" Margin="197,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnExtractWaveBankChecked" IsTabStop="False"/>
 
-                        </Grid>
+                        <CheckBox x:Name="checkBoxExtractUseInput" Content="Use Input as Output" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" Click="OnExtractUseInputChecked" IsTabStop="False"/>
+                    </Grid>
                 </TabItem>
                 <TabItem Header="Convert" IsTabStop="False">
                     <Grid Background="#FFF9F9F9">
@@ -141,56 +141,55 @@
                             <System:String>Folder</System:String>
                             <System:String>File</System:String>
                         </ComboBox>
+                        <Button x:Name="buttonConvert" Content="Convert" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnConvert" IsDefault="True"/>
+                        <Button x:Name="buttonConvertUseTerraria" Content="Use Terraria" HorizontalAlignment="Right" Margin="0,12,90,0" VerticalAlignment="Top" Width="100" Click="OnConvertUseTerraria" AllowDrop="True" IsHitTestVisible="True" IsTabStop="False" Focusable="False"/>
 
                         <Label x:Name="labelConvertInput" Content="Input Folder" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
-                        <TextBox x:Name="textBoxConvertInput" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnConvertInputChanged"/>
+                        <TextBox x:Name="textBoxConvertInput" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnConvertInputChanged"/>
                         <Button HorizontalAlignment="Right" Margin="0,47,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnConvertChangeInput">
                             <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
                         </Button>
                         <Label x:Name="labelConvertOutput" Content="Output Folder" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
-                        <TextBox x:Name="textBoxConvertOutput" Height="23" Margin="100,80,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnConvertOutputChanged"/>
+                        <TextBox x:Name="textBoxConvertOutput" Height="23" Margin="100,80,41,0" VerticalAlignment="Top" IsHitTestVisible="True" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnConvertOutputChanged"/>
                         <Button x:Name="buttonConvertOutput" HorizontalAlignment="Right" Margin="0,80,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnConvertChangeOutput">
                             <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
                         </Button>
 
-                        <Button x:Name="buttonConvert" Content="Convert" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnConvert" IsDefault="True"/>
-                        <CheckBox x:Name="checkBoxConvertUseInput" Content="Use Input as Output" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" Click="OnConvertUseInputChecked" IsTabStop="False" Focusable="False"/>
-                        <Button x:Name="buttonConvertUseTerraria" Content="Use Terraria" HorizontalAlignment="Right" Margin="0,12,90,0" VerticalAlignment="Top" Width="100" Click="OnConvertUseTerraria" AllowDrop="True" IsHitTestVisible="True" IsTabStop="False" Focusable="False"/>
                         <CheckBox x:Name="checkBoxConvertImages" Content="Images" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnConvertImagesChecked" IsTabStop="False" Focusable="False"/>
                         <CheckBox x:Name="checkBoxConvertSounds" Content="Sounds" HorizontalAlignment="Left" Margin="75,0,0,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" IsChecked="True" Click="OnConvertSoundsChecked" Focusable="False" IsTabStop="False"/>
+
+                        <CheckBox x:Name="checkBoxConvertUseInput" Content="Use Input as Output" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Padding="4,-1,0,0" Click="OnConvertUseInputChecked" IsTabStop="False" Focusable="False"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Backup" IsTabStop="False">
                     <Grid Background="#FFF9F9F9">
+                        <Label Content="Backup or Restore" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
+                        <Button Content="Restore" HorizontalAlignment="Right" Margin="0,12,90,0" VerticalAlignment="Top" Width="75" Click="OnRestore" IsDefault="True"/>
+                        <Button Content="Backup" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnBackup"/>
+                        <Button Content="Use Terraria" HorizontalAlignment="Right" Margin="0,12,170,0" VerticalAlignment="Top" Width="100" Click="OnBackupUseTerraria" Focusable="False" IsTabStop="False"/>
 
                         <Label Content="Content Folder" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
-                        <TextBox x:Name="textBoxContent" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnContentChanged"/>
+                        <TextBox x:Name="textBoxContent" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnContentChanged"/>
                         <Button HorizontalAlignment="Right" Margin="0,47,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnBackupChangeContent">
                             <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
                         </Button>
                         <Label Content="Backup Folder" HorizontalAlignment="Left" Margin="10,78,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
-                        <TextBox x:Name="textBoxBackup" Height="23" Margin="100,80,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnBackupChanged"/>
+                        <TextBox x:Name="textBoxBackup" Height="23" Margin="100,80,41,0" VerticalAlignment="Top" IsHitTestVisible="True" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnBackupChanged"/>
                         <Button HorizontalAlignment="Right" Margin="0,80,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnBackupChangeBackup">
                             <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
                         </Button>
-
-                        <Button Content="Backup" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnBackup"/>
-                        <Button Content="Restore" HorizontalAlignment="Right" Margin="0,12,90,0" VerticalAlignment="Top" Width="75" Click="OnRestore" IsDefault="True"/>
-                        <Button Content="Use Terraria" HorizontalAlignment="Right" Margin="0,12,170,0" VerticalAlignment="Top" Width="100" Click="OnBackupUseTerraria" Focusable="False" IsTabStop="False"/>
-                        <Label Content="Backup or Restore" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
                     </Grid>
                 </TabItem>
                 <TabItem Header="Script" IsTabStop="False">
                     <Grid Background="#FFF9F9F9">
                         <Label Content="Run an Extract, Convert, or Restore Script" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
-
+                        <Button x:Name="buttonScript" Content="Run Script" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnRunScript" IsDefault="True"/>
+                        
                         <Label Content="Script File" HorizontalAlignment="Left" Margin="10,45,0,0" VerticalAlignment="Top" Padding="0,5,5,5"/>
-                        <TextBox x:Name="textBoxScript" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" IsTabStop="False" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnScriptChanged"/>
+                        <TextBox x:Name="textBoxScript" Height="23" Margin="100,47,41,0" VerticalAlignment="Top" IsHitTestVisible="True" AllowDrop="True" ScrollViewer.CanContentScroll="True" TextChanged="OnScriptChanged"/>
                         <Button HorizontalAlignment="Right" Margin="0,47,10,0" VerticalAlignment="Top" Width="22" Height="22" Padding="0" Grid.IsSharedSizeScope="True" ToolTip="Browse" Focusable="False" IsTabStop="False" Click="OnChangeScript">
                             <Image Height="16" Width="16" Source="Resources/Icons/Browse.png" IsHitTestVisible="False" Style="{StaticResource ButtonImageDisablable}"/>
                         </Button>
-
-                        <Button x:Name="buttonScript" Content="Run Script" HorizontalAlignment="Right" Margin="0,12,10,0" VerticalAlignment="Top" Width="75" Click="OnRunScript" IsDefault="True"/>
                     </Grid>
                 </TabItem>
             </TabControl>

@@ -201,6 +201,8 @@ namespace TConvert {
 					TriggerMessageBox.Show(this, MessageIcon.Warning, "Output folder path is invalid.", "Invalid Path");
 					return;
 				}
+				input = Helpers.FixPathSafe(input);
+				output = Helpers.FixPathSafe(output);
 				thread = new Thread(() => {
 					Processing.ExtractAll(input, output, allowImages, allowSounds, allowFonts, allowWaveBank);
 				});
@@ -214,6 +216,8 @@ namespace TConvert {
 					TriggerMessageBox.Show(this, MessageIcon.Warning, "Output file path is invalid.", "Invalid Path");
 					return;
 				}
+				input = Helpers.FixPathSafe(input);
+				output = Helpers.FixPathSafe(output);
 				thread = new Thread(() => {
 					Processing.ExtractSingleFile(input, output);
 				});
@@ -319,6 +323,8 @@ namespace TConvert {
 					TriggerMessageBox.Show(this, MessageIcon.Warning, "Output folder path is invalid.", "Invalid Path");
 					return;
 				}
+				input = Helpers.FixPathSafe(input);
+				output = Helpers.FixPathSafe(output);
 				thread = new Thread(() => {
 					Processing.ConvertAll(input, output, allowImages, allowSounds);
 				});
@@ -332,6 +338,8 @@ namespace TConvert {
 					TriggerMessageBox.Show(this, MessageIcon.Warning, "Output file path is invalid.", "Invalid Path");
 					return;
 				}
+				input = Helpers.FixPathSafe(input);
+				output = Helpers.FixPathSafe(output);
 				thread = new Thread(() => {
 					Processing.ConvertSingleFile(input, output);
 				});
@@ -428,6 +436,8 @@ namespace TConvert {
 				return;
 			}
 
+			input = Helpers.FixPathSafe(input);
+			output = Helpers.FixPathSafe(output);
 			Thread thread = new Thread(() => {
 				Processing.BackupFiles(input, output);
 			});
@@ -450,6 +460,8 @@ namespace TConvert {
 				return;
 			}
 
+			input = Helpers.FixPathSafe(input);
+			output = Helpers.FixPathSafe(output);
 			Thread thread = new Thread(() => {
 				Processing.RestoreFiles(input, output);
 			});
@@ -510,6 +522,7 @@ namespace TConvert {
 				TriggerMessageBox.Show(this, MessageIcon.Warning, "Could not find the script file.", "Invalid Path");
 				return;
 			}
+			input = Helpers.FixPathSafe(input);
 			thread = new Thread(() => {
 				Processing.RunScript(input);
 			});

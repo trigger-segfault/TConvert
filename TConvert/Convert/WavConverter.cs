@@ -22,7 +22,7 @@ namespace TConvert.Convert {
 
 			int dataChunkSize;
 			byte[] waveData;
-
+			
 			using (FileStream stream = new FileStream(inputFile, FileMode.Open)) {
 				using (BinaryReader reader = new BinaryReader(stream)) {
 					string format = new string(reader.ReadChars(4));

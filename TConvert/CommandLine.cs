@@ -71,8 +71,8 @@ namespace TConvert {
 
 		/**<summary>The collection of command line options.</summary>*/
 		private static readonly Dictionary<ArgTypes, OptionInfo> Options = new Dictionary<ArgTypes, OptionInfo>() {
-			{ ArgTypes.Input,	new OptionInfo(ProcessInput, "Input", "Specify input files & folders.", "[filepaths]", "-i", "--input") },
-			{ ArgTypes.Output,	new OptionInfo(ProcessOutput, "Output", "Specify output files & folders.", "[filepaths]", "-o", "--output") },
+			{ ArgTypes.Input,	new OptionInfo(ProcessInput, "Input", "Specify input files & folders.", "filepaths", "-i", "--input") },
+			{ ArgTypes.Output,	new OptionInfo(ProcessOutput, "Output", "Specify output files & folders.", "filepaths", "-o", "--output") },
 			#if !(CONSOLE)
 			{ ArgTypes.Console,	new OptionInfo(ProcessConsole, "Console", "Don't display a progress window.", null, "-C", "--Console") },
 			#endif
@@ -469,8 +469,8 @@ namespace TConvert {
 					line += " " + argInfo.Value.PostOptions;
 				if (line.Length < 22)
 					line += new string(' ', 22 - line.Length);
-				else if (line.Length < 30)
-					line += new string(' ', 30 - line.Length);
+				else if (line.Length < 27)
+					line += new string(' ', 27 - line.Length);
 				line += argInfo.Value.Description;
 				Log(line);
 			}

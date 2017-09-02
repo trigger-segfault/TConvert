@@ -130,6 +130,7 @@
     <Compile Include="Windows\ErrorLogWindow.xaml.cs">
       <DependentUpon>ErrorLogWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Windows\FlashWindow.cs" />
     <Compile Include="Windows\FolderBrowserLauncher.cs" />
     <Compile Include="Windows\ProgressWindow.xaml.cs">
       <DependentUpon>ProgressWindow.xaml</DependentUpon>
@@ -147,11 +148,6 @@
     <Compile Include="ErrorLogger.cs" />
     <Compile Include="Extract\DtxUtil.cs" />
     <Compile Include="Processing.cs" />
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
     <Compile Include="Startup.cs" />
     <Compile Include="TerrariaLocator.cs" />
     <Compile Include="Convert\PngConverter.cs" />
@@ -168,11 +164,15 @@
     <Compile Include="Util\Extensions.cs" />
     <Compile Include="Util\Helpers.cs" />
     <Compile Include="Util\Xnb.cs" />
-    <Compile Include="Windows\FlashWindow.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>

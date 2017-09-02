@@ -58,7 +58,8 @@ namespace TConvert.Windows {
 		/// <returns></returns>
 		public static DialogResult ShowFolderBrowser(FolderBrowserDialog dlg, IWin32Window parent = null) {
 			DialogResult result = DialogResult.Cancel;
-			int retries = 10;
+			int retries = 40;
+			dlg.SelectedPath = System.IO.Path.GetFullPath(dlg.SelectedPath);
 
 			using (Timer t = new Timer()) {
 				t.Tick += (s, a) => {
@@ -73,9 +74,11 @@ namespace TConvert.Windows {
 								if (hwndTV != IntPtr.Zero) {
 									IntPtr item = SendMessage(hwndTV, (uint)TVM_GETNEXTITEM, new IntPtr(TVGN_CARET), IntPtr.Zero);
 									if (item != IntPtr.Zero) {
+										// Let's send this 40 times until we drill it into the folder browser's thick skull.
+										// Otherwise it will just go back to the beginning.
 										SendMessage(hwndTV, TVM_ENSUREVISIBLE, IntPtr.Zero, item);
-										retries = 0;
-										t.Stop();
+										//retries = 0;
+										//t.Stop();
 									}
 								}
 							}
@@ -91,7 +94,7 @@ namespace TConvert.Windows {
 						//  the Tree View to scroll to the selected item.
 						//
 						t.Stop();
-						SendKeys.Send("{TAB}{TAB}{DOWN}{DOWN}{UP}{UP}");
+						//SendKeys.Send("{TAB}{TAB}{DOWN}{DOWN}{UP}{UP}");
 					}
 				};
 

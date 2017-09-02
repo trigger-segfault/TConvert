@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -225,8 +226,12 @@ namespace TConvert {
 		}
 		/**<summary>Called when the progress window is canceled.</summary>*/
 		private static void OnProgressCancel() {
+			Directory.SetCurrentDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 			ErrorLogger.Close();
 			if (errorLog.Count > 0) {
+				#if !(CONSOLE)
+				progressWindow = null;
+				#endif
 				ShowErrorLog();
 				errorLog.Clear();
 			}
@@ -253,6 +258,7 @@ namespace TConvert {
 		}
 		/**<summary>Called to finish the progress with a message.</summary>*/
 		public static void FinishProgress(string message) {
+			Directory.SetCurrentDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
 			#if !(CONSOLE)
 			if (progressWindow != null) {
 				progressWindow.Dispatcher.Invoke(() => {
@@ -521,6 +527,8 @@ namespace TConvert {
 			catch (XnbException ex) {
 				LogError("Extracting: " + inputFile, "Xnb error (" + ex.Message + ")");
 			}
+			catch (ThreadAbortException) { }
+			catch (ThreadInterruptedException) { }
 			catch (Exception ex) {
 				LogError("Extracting: " + inputFile, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
 			}
@@ -561,6 +569,8 @@ namespace TConvert {
 			catch (XnbException ex) {
 				LogError("Extracting: " + inputFile, "Xnb error (" + ex.Message + ")");
 			}
+			catch (ThreadAbortException) { }
+			catch (ThreadInterruptedException) { }
 			catch (Exception ex) {
 				LogError("Extracting: " + inputFile, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
 			}
@@ -641,6 +651,8 @@ namespace TConvert {
 			catch (WavException ex) {
 				LogError("Converting: " + inputFile, "Wav error (" + ex.Message + ")");
 			}
+			catch (ThreadAbortException) { }
+			catch (ThreadInterruptedException) { }
 			catch (Exception ex) {
 				LogError("Converting: " + inputFile, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
 			}
@@ -684,6 +696,8 @@ namespace TConvert {
 			catch (WavException ex) {
 				LogError("Converting: " + inputFile, "Wav error (" + ex.Message + ")");
 			}
+			catch (ThreadAbortException) { }
+			catch (ThreadInterruptedException) { }
 			catch (Exception ex) {
 				LogError("Converting: " + inputFile, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
 			}
@@ -788,6 +802,8 @@ namespace TConvert {
 			try {
 				Directory.SetCurrentDirectory(Path.GetDirectoryName(inputScript));
 			}
+			catch (ThreadAbortException) { }
+			catch (ThreadInterruptedException) { }
 			catch (Exception ex) {
 				LogError("Setting working directory failed", ex.Message);
 				FinishProgress("Finished Script");
@@ -822,20 +838,22 @@ namespace TConvert {
 				FinishProgress("Finished Script");
 				return null;
 			}
+			catch (ThreadAbortException) { }
+			catch (ThreadInterruptedException) { }
 			catch (Exception ex) {
 				LogError("Reading Script: " + inputScript, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
 				FinishProgress("Finished Script");
 				return null;
 			}
 
-			XmlElement root = doc["ConvertScript"];
+			XmlElement root = doc["TConvertScript"];
 
 			// Find all the files and restores
 			if (root != null) {
 				LoadScriptFolder(root, files, backups, restores, "", "", compressImages, true);
 			}
 			else {
-				LogError("Reading Script", "No root ConvertScript");
+				LogError("Reading Script", "No root element TConvertScript.");
 				FinishProgress("Finished Script");
 				return null;
 			}
@@ -847,7 +865,7 @@ namespace TConvert {
 				switch (ext) {
 				case ".xnb": case ".xwb":
 					extracts.Add(file); break;
-				case ".png": case ".bmp": case ".jpg":
+				case ".wav": case ".png": case ".bmp": case ".jpg":
 					converts.Add(file); break;
 				}
 			}
@@ -868,7 +886,7 @@ namespace TConvert {
 						if (bool.TryParse(attribute.InnerText, out nextCompress))
 							newCompress = nextCompress;
 						else
-							LogWarning("Reading Script", "Failed to parse Compress attribute Value.");
+							LogWarning("Reading Script", "Failed to parse Value attribute in Compress: '" + attribute.InnerText + "'.");
 					}
 					else {
 						LogWarning("Reading Script", "No Value attribute in Compress.");
@@ -877,12 +895,17 @@ namespace TConvert {
 				case "Backup":
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
-						string nextPath;
-						if (path == string.Empty)
-							nextPath = attribute.InnerText;
-						else
-							nextPath = Path.Combine(path, attribute.InnerText);
-						backups.Add(new PathPair(nextPath, newOutput));
+						if (Helpers.IsPathValid(attribute.InnerText)) {
+							string nextPath;
+							if (path == string.Empty)
+								nextPath = attribute.InnerText;
+							else
+								nextPath = Path.Combine(path, attribute.InnerText);
+							backups.Add(new PathPair(nextPath, newOutput));
+						}
+						else {
+							LogWarning("Reading Script", "Invalid Path attribute in Backup: '" + attribute.InnerText + "'.");
+						}
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in Backup.");
@@ -891,12 +914,17 @@ namespace TConvert {
 				case "Restore":
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
-						string nextPath;
-						if (path == string.Empty)
-							nextPath = attribute.InnerText;
-						else
-							nextPath = Path.Combine(path, attribute.InnerText);
-						restores.Add(new PathPair(nextPath, newOutput));
+						if (Helpers.IsPathValid(attribute.InnerText)) {
+							string nextPath;
+							if (path == string.Empty)
+								nextPath = attribute.InnerText;
+							else
+								nextPath = Path.Combine(path, attribute.InnerText);
+							restores.Add(new PathPair(nextPath, newOutput));
+						}
+						else {
+							LogWarning("Reading Script", "Invalid Path attribute in Restore: '" + attribute.InnerText + "'.");
+						}
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in Restore.");
@@ -905,10 +933,15 @@ namespace TConvert {
 				case "Output":
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
-						if (output == string.Empty)
-							newOutput = attribute.InnerText;
-						else
-							newOutput = Path.Combine(output, attribute.InnerText);
+						if (Helpers.IsPathValid(attribute.InnerText)) {
+							if (output == string.Empty)
+								newOutput = attribute.InnerText;
+							else
+								newOutput = Path.Combine(output, attribute.InnerText);
+						}
+						else {
+							LogWarning("Reading Script", "Invalid Path attribute in Output: '" + attribute.InnerText + "'.");
+						}
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in Output.");
@@ -917,12 +950,17 @@ namespace TConvert {
 				case "Folder":
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
-						string nextPath;
-						if (path == string.Empty)
-							nextPath = attribute.InnerText;
-						else
-							nextPath = Path.Combine(path, attribute.InnerText);
-						LoadScriptFolder(next, files, backups, restores, newOutput, nextPath, newCompress);
+						if (Helpers.IsPathValid(attribute.InnerText)) {
+							string nextPath;
+							if (path == string.Empty)
+								nextPath = attribute.InnerText;
+							else
+								nextPath = Path.Combine(path, attribute.InnerText);
+							LoadScriptFolder(next, files, backups, restores, newOutput, nextPath, newCompress);
+						}
+						else {
+							LogWarning("Reading Script", "Invalid Path attribute in Folder: '" + attribute.InnerText + "'.");
+						}
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in Folder.");
@@ -931,31 +969,39 @@ namespace TConvert {
 				case "File":
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
-						string nextPath;
-						bool nextCompress = newCompress;
-						if (path == string.Empty)
-							nextPath = attribute.InnerText;
-						else
-							nextPath = Path.Combine(path, attribute.InnerText);
-						attribute = next.Attributes["Compress"];
-						if (attribute != null) {
-							if (!bool.TryParse(attribute.InnerText, out nextCompress)) {
-								LogWarning("Reading Script", "Failed to parse File attribute Compress.");
-								nextCompress = newCompress;
-							}
-						}
-						attribute = next.Attributes["OutPath"];
-						if (attribute != null) {
-							string nextOutput;
-							if (newOutput == string.Empty)
-								nextOutput = attribute.InnerText;
+						if (Helpers.IsPathValid(attribute.InnerText)) {
+							string nextPath;
+							bool nextCompress = newCompress;
+							if (path == string.Empty)
+								nextPath = attribute.InnerText;
 							else
-								nextOutput = Path.Combine(newOutput, attribute.InnerText);
-							if (!Path.HasExtension(nextOutput))
-								nextOutput = Path.ChangeExtension(nextOutput, ".xnb");
-							files.Add(new PathPair(nextPath, nextOutput, nextCompress));
+								nextPath = Path.Combine(path, attribute.InnerText);
+							attribute = next.Attributes["Compress"];
+							if (attribute != null) {
+								if (!bool.TryParse(attribute.InnerText, out nextCompress)) {
+									LogWarning("Reading Script", "Failed to parse Compress attribute in File: '" + attribute.InnerText + "'.");
+									nextCompress = newCompress;
+								}
+							}
+							attribute = next.Attributes["OutPath"];
+							if (attribute != null) {
+								if (Helpers.IsPathValid(attribute.InnerText)) {
+									string nextOutput;
+									if (newOutput == string.Empty)
+										nextOutput = Helpers.FixPathSafe(attribute.InnerText);
+									else
+										nextOutput = Path.Combine(newOutput, attribute.InnerText);
+									files.Add(new PathPair(nextPath, nextOutput, nextCompress));
+								}
+								else {
+									LogWarning("Reading Script", "Invalid OutPath attribute in File: '" + attribute.InnerText + "'."); ;
+								}
+							}
+							LoadScriptFile(next, files, newOutput, nextPath, nextCompress);
 						}
-						LoadScriptFile(next, files, newOutput, nextPath, nextCompress);
+						else {
+							LogWarning("Reading Script", "Invalid Path attribute in File: '" + attribute.InnerText + "'.");
+						}
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in File.");
@@ -981,7 +1027,7 @@ namespace TConvert {
 						if (bool.TryParse(attribute.InnerText, out nextCompress))
 							newCompress = nextCompress;
 						else
-							LogWarning("Reading Script", "Failed to parse Compress attribute Value.");
+							LogWarning("Reading Script", "Failed to parse Value attribute in Compress: '" + attribute.InnerText + "'.");
 					}
 					else {
 						LogWarning("Reading Script", "No Value attribute in Compress.");
@@ -990,10 +1036,15 @@ namespace TConvert {
 				case "Output":
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
-						if (output == string.Empty)
-							newOutput = attribute.InnerText;
-						else
-							newOutput = Path.Combine(output, attribute.InnerText);
+						if (Helpers.IsPathValid(attribute.InnerText)) {
+							if (output == string.Empty)
+								newOutput = attribute.InnerText;
+							else
+								newOutput = Path.Combine(output, attribute.InnerText);
+						}
+						else {
+							LogWarning("Reading Script", "Invalid Path attribute in Output: '" + attribute.InnerText + "'.");
+						}
 					}
 					else {
 						LogWarning("Reading Script", "No Path attribute in Output.");
@@ -1002,25 +1053,28 @@ namespace TConvert {
 				case "Out":
 					attribute = next.Attributes["Path"];
 					if (attribute != null) {
-						string nextOutput;
-						bool nextCompress = newCompress;
-						if (newOutput == string.Empty)
-							nextOutput = attribute.InnerText;
-						else
-							nextOutput = Path.Combine(newOutput, attribute.InnerText);
-						if (!Path.HasExtension(nextOutput))
-							nextOutput = Path.ChangeExtension(nextOutput, ".xnb");
-						attribute = next.Attributes["Compress"];
-						if (attribute != null) {
-							if (!bool.TryParse(attribute.InnerText, out nextCompress)) {
-								LogWarning("Reading Script", "Failed to parse Out attribute Compress.");
-								nextCompress = newCompress;
+						if (Helpers.IsPathValid(attribute.InnerText)) {
+							string nextOutput;
+							bool nextCompress = newCompress;
+							if (newOutput == string.Empty)
+								nextOutput = attribute.InnerText;
+							else
+								nextOutput = Path.Combine(newOutput, attribute.InnerText);
+							attribute = next.Attributes["Compress"];
+							if (attribute != null) {
+								if (!bool.TryParse(attribute.InnerText, out nextCompress)) {
+									LogWarning("Reading Script", "Failed to parse Compress attribute in Out: '" + attribute.InnerText + "'.");
+									nextCompress = newCompress;
+								}
 							}
+							files.Add(new PathPair(path, nextOutput, nextCompress));
 						}
-						files.Add(new PathPair(path, nextOutput, nextCompress));
+						else {
+							LogWarning("Reading Script", "Invalid Path attribute in Out: '" + attribute.InnerText + "'.");
+						}
 					}
 					else {
-						LogWarning("Reading Script", "No Path attribute in Out");
+						LogWarning("Reading Script", "No Path attribute in Out.");
 					}
 					break;
 				default:
@@ -1081,6 +1135,8 @@ namespace TConvert {
 			catch (IOException ex) {
 				LogError("Backing up: " + inputFile, "IO error (" + ex.Message + ")");
 			}
+			catch (ThreadAbortException) { }
+			catch (ThreadInterruptedException) { }
 			catch (Exception ex) {
 				LogError("Backing up: " + inputFile, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
 			}
@@ -1109,6 +1165,8 @@ namespace TConvert {
 			catch (IOException ex) {
 				LogError("Backing up: " + inputFile, "IO error (" + ex.Message + ")");
 			}
+			catch (ThreadAbortException) { }
+			catch (ThreadInterruptedException) { }
 			catch (Exception ex) {
 				LogError("Backing up: " + inputFile, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
 			}
@@ -1146,6 +1204,8 @@ namespace TConvert {
 			catch (IOException ex) {
 				LogError("Restoring: " + inputFile, "IO error (" + ex.Message + ")");
 			}
+			catch (ThreadAbortException) { }
+			catch (ThreadInterruptedException) { }
 			catch (Exception ex) {
 				LogError("Restoring: " + inputFile, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
 			}
@@ -1182,6 +1242,8 @@ namespace TConvert {
 			catch (IOException ex) {
 				LogError("Restoring: " + inputFile, "IO error (" + ex.Message + ")");
 			}
+			catch (ThreadAbortException) { }
+			catch (ThreadInterruptedException) { }
 			catch (Exception ex) {
 				LogError("Restoring: " + inputFile, ex.GetType().ToString().Split('.').Last() + " (" + ex.Message + ")");
 			}
