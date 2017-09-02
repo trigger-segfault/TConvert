@@ -10,7 +10,7 @@ A combination tool for managing Terraria content resources. Convert, extract, ba
 ## About
 
 * **Created By:** Robert Jordan
-* **Version:** *Not released yet*
+* **Version:** 1.0.0.0
 * **Language:** C#, WPF
 
 ## Requirements for Running
