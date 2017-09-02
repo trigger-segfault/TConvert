@@ -28,3 +28,7 @@ A combination tool for managing Terraria content resources. Convert, extract, ba
 * Run scripts that give more control over where files go when they are converted or exracted.
 * Drop files into the window to automatically process them.
 * Command line support for use with Windows Shell or the command prompt.
+
+## About Xnb Format
+
+Everything I learned about the Xnb format in order to read sprite fonts was gotten from the [documentation available on this page](http://xbox.create.msdn.com/en-us/sample/xnb_format). [Here's a mirror](http://www.mediafire.com/file/pf5dqw5dmup1msa/XNA_XNB_Format.zip) if that link ever goes down like old Microsoft links usually do.
