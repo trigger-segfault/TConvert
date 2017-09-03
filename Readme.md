@@ -25,7 +25,7 @@ A combination tool for managing Terraria content resources. Convert, extract, ba
 * Extract image, sound, and font resources from Terraria's Xnb files, and extract songs from Terraria's Xwb wave bank.
 * Convert images and sounds back into Xnb format and copy them to the content directory.
 * Backup and restore your content folder for when you need to remove changes. (Glorified file copier)
-* Run scripts that give more control over where files go when they are converted or exracted.
+* Run scripts that give more control over where files go when they are converted or extracted.
 * Drop files into the window to automatically process them.
 * Command line support for use with Windows Shell or the command prompt.
 
