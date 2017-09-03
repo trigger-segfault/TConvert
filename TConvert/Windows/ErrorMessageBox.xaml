@@ -11,10 +11,10 @@
         <Button Content="Continue" HorizontalAlignment="Right" Margin="0,0,103,12" VerticalAlignment="Bottom" Width="80" Focusable="False" IsTabStop="False" Click="OnContinue"/>
         <Button x:Name="buttonExit" Content="Exit" HorizontalAlignment="Right" Margin="0,0,18,12" VerticalAlignment="Bottom" Width="80" Focusable="False" IsTabStop="False" Click="OnClose"/>
         <Label Margin="18,15,18,0" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Padding="0">
-            <TextBlock  TextWrapping="WrapWithOverflow" Text="Unhandled Exception in TExtract (C#)!" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#FF952727" FontWeight="Bold"/>
+            <TextBlock  TextWrapping="WrapWithOverflow" Text="Unhandled Exception in TConvert" HorizontalAlignment="Left" VerticalAlignment="Top" Foreground="#FF952727" FontWeight="Bold"/>
         </Label>
         <Label HorizontalAlignment="Right" Margin="0,10,18,0" VerticalAlignment="Top" FontWeight="Bold">
-            <Hyperlink NavigateUri="https://github.com/trigger-death/TerrariaMidiPlayer" RequestNavigate="OnRequestNavigate">
+            <Hyperlink NavigateUri="https://github.com/trigger-death/TConvert" RequestNavigate="OnRequestNavigate">
                 <Run Text="Github Page"/>
             </Hyperlink>
         </Label>
