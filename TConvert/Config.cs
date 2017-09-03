@@ -169,7 +169,7 @@ namespace TConvert {
 		/**<summary>Loads the settings.</summary>*/
 		public static void Load() {
 			TerrariaContentDirectory = Settings.Default.TerrariaContentDirectory;
-			if (TerrariaContentDirectory == "") {
+			if (TerrariaContentDirectory == "" && (TerrariaLocator.TerrariaContentDirectory != null && TerrariaLocator.TerrariaContentDirectory  != "")) {
 				TerrariaContentDirectory = TerrariaLocator.TerrariaContentDirectory;
 			}
 			Tabs tab;

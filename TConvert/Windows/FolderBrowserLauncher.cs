@@ -59,7 +59,11 @@ namespace TConvert.Windows {
 		public static DialogResult ShowFolderBrowser(FolderBrowserDialog dlg, IWin32Window parent = null) {
 			DialogResult result = DialogResult.Cancel;
 			int retries = 40;
-			dlg.SelectedPath = System.IO.Path.GetFullPath(dlg.SelectedPath);
+			try {
+				if (dlg.SelectedPath != "")
+					dlg.SelectedPath = System.IO.Path.GetFullPath(dlg.SelectedPath);
+			}
+			catch { }
 
 			using (Timer t = new Timer()) {
 				t.Tick += (s, a) => {

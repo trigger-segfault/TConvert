@@ -86,6 +86,7 @@ namespace TConvert {
 			buttonExtractUseTerraria.IsEnabled = !Config.Extract.UseInput && Config.Extract.Mode == InputModes.Folder;
 			checkBoxExtractImages.IsEnabled = Config.Extract.Mode == InputModes.Folder;
 			checkBoxExtractSounds.IsEnabled = Config.Extract.Mode == InputModes.Folder;
+			checkBoxExtractFonts.IsEnabled = Config.Extract.Mode == InputModes.Folder;
 			checkBoxExtractWaveBank.IsEnabled = Config.Extract.Mode == InputModes.Folder;
 			switch (Config.Extract.Mode) {
 			case InputModes.Folder:
@@ -163,7 +164,7 @@ namespace TConvert {
 			System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
 			dialog.ShowNewFolderButton = false;
 			dialog.Description = "Choose Terraria Content folder";
-			dialog.SelectedPath = Path.GetFullPath(Config.TerrariaContentDirectory);
+			dialog.SelectedPath = Helpers.FixPathSafe(Config.TerrariaContentDirectory);
 			if (dialog.SelectedPath == string.Empty)
 				dialog.SelectedPath = lastFolderPath;
 			var result = FolderBrowserLauncher.ShowFolderBrowser(dialog);
@@ -244,6 +245,7 @@ namespace TConvert {
 			buttonExtractUseTerraria.IsEnabled = !Config.Extract.UseInput && Config.Extract.Mode == InputModes.Folder;
 			checkBoxExtractImages.IsEnabled = Config.Extract.Mode == InputModes.Folder;
 			checkBoxExtractSounds.IsEnabled = Config.Extract.Mode == InputModes.Folder;
+			checkBoxExtractFonts.IsEnabled = Config.Extract.Mode == InputModes.Folder;
 			checkBoxExtractWaveBank.IsEnabled = Config.Extract.Mode == InputModes.Folder;
 		}
 		private void OnExtractChangeInput(object sender, RoutedEventArgs e) {
@@ -535,8 +537,13 @@ namespace TConvert {
 			dialog.Title = "Choose script file";
 			dialog.CheckFileExists = true;
 			if (Config.Script.File != string.Empty) {
-				dialog.FileName = Path.GetFileName(Config.Script.File);
-				dialog.InitialDirectory = Path.GetDirectoryName(Config.Script.File);
+				try {
+					dialog.FileName = Path.GetFileName(Config.Script.File);
+					dialog.InitialDirectory = Path.GetDirectoryName(Config.Script.File);
+				}
+				catch {
+					dialog.InitialDirectory = lastFilePath;
+				}
 			}
 			else {
 				dialog.InitialDirectory = lastFilePath;
@@ -546,7 +553,10 @@ namespace TConvert {
 				textBoxScript.Text = dialog.FileName;
 				Config.Script.File = dialog.FileName;
 			}
-			lastFilePath = Path.GetDirectoryName(dialog.FileName);
+			try {
+				lastFilePath = Path.GetDirectoryName(dialog.FileName);
+			}
+			catch { }
 		}
 		private void OnScriptChanged(object sender, TextChangedEventArgs e) {
 			if (!loaded)
@@ -670,9 +680,11 @@ namespace TConvert {
 				string dir = Config.TerrariaContentDirectory;
 				try {
 					dir = Path.GetDirectoryName(Config.TerrariaContentDirectory);
+					Process.Start(dir);
 				}
-				catch { }
-				Process.Start(dir);
+				catch {
+					TriggerMessageBox.Show(this, MessageIcon.Warning, "Failed to locate Terraria folder.", "Missing Folder");
+				}
 			}
 		}
 		private void OnExit(object sender, RoutedEventArgs e) {
@@ -758,14 +770,25 @@ namespace TConvert {
 					dialog.Title = "Choose " + (input ? "input" : "output") + " file";
 					dialog.CheckFileExists = input;
 					if (currentPath != string.Empty) {
-						dialog.FileName = Path.GetFileName(currentPath);
-						dialog.InitialDirectory = Path.GetDirectoryName(currentPath);
+						try {
+							dialog.FileName = Path.GetFileName(currentPath);
+						}
+						catch { }
+						try {
+							dialog.InitialDirectory = Path.GetDirectoryName(currentPath);
+						}
+						catch {
+							dialog.InitialDirectory = lastFilePath;
+						}
 					}
 					else {
 						dialog.InitialDirectory = lastFilePath;
 					}
 					var result = dialog.ShowDialog(this);
-					lastFilePath = Path.GetDirectoryName(dialog.FileName);
+					try {
+						lastFilePath = Path.GetDirectoryName(dialog.FileName);
+					}
+					catch { }
 					if (result.HasValue && result.Value) {
 						return dialog.FileName;
 					}
