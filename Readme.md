@@ -5,12 +5,12 @@ A combination tool for managing Terraria content resources. Convert, extract, ba
 
 ### [Wiki](https://github.com/trigger-death/TConvert/wiki) | [Credits](https://github.com/trigger-death/TConvert/wiki/Credits) | [Image Album](http://imgur.com/a/QaoPd)
 
-### [![Get TConvert](http://i.imgur.com/ImqTuVv.png)](https://github.com/trigger-death/TConvert/releases/tag/1.0.0.1)
+### [![Get TConvert](http://i.imgur.com/ImqTuVv.png)](https://github.com/trigger-death/TConvert/releases/tag/1.0.0.2)
 
 ## About
 
 * **Created By:** Robert Jordan
-* **Version:** 1.0.0.1
+* **Version:** 1.0.0.2 (Hotfix)
 * **Language:** C#, WPF
 
 ## Requirements for Running
