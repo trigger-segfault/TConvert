@@ -21,7 +21,7 @@ namespace TConvert {
 
 		/**<summary>Start looking for the Terraria Content folder.</summary>*/
 		static TerrariaLocator() {
-			TerrariaContentDirectory = null;// FindTerrariaContentDirectory();
+			TerrariaContentDirectory = FindTerrariaContentDirectory();
 		}
 
 		#endregion
