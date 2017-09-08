@@ -53,51 +53,51 @@ namespace TConvert.Extract {
 			Label_RIFF.Length + 4 + Label_WAVE.Length + Label_fmt.Length +
 			4 + 2 + 2 + 4 + 4 + 2 + 2 + Label_data.Length + 4;
 		
-		private const string WaveBankList = "WaveBank.txt";
+		private const string WaveBankList = "TrackList.txt";
 
 		/** Mapping of music wave bank indexes to their names */
 		private static string[] TrackNames = {
-			"01_OverworldNight",
-			"02_Eerie",
-			"03_OverworldDay",
-			"04_Boss1",
-			"05_TitleScreen",
-			"06_Jungle",
-			"07_Corruption",
-			"08_Hallow",
-			"09_UndergroundCorruption",
-			"10_UndergroundHallow",
-			"11_Boss2",
-			"12_Underground",
-			"13_Boss3",
-			"14_Snow",
-			"15_Space",
-			"16_Crimson",
-			"17_Golem",
-			"18_AlternateDay",
-			"19_Rain",
-			"20_UndergroundSnow",
-			"21_Desert",
-			"22_Ocean",
-			"23_Dungeon",
-			"24_Plantera",
-			"25_QueenBee",
-			"26_Lizhard",
-			"27_Eclipse",
-			"28_RainAmbience",
-			"29_Mushrooms",
-			"30_PumpkinMoon",
-			"31_AlternateUnderground",
-			"32_FrostMoon",
-			"33_UndergroundCrimson",
-			"34_LunarBoss",
-			"35_PirateInvasion",
-			"36_Underworld",
-			"37_MartianMadness",
-			"38_MoonLord",
-			"39_GoblinArmy",
-			"40_Sandstorm",
-			"41_OldOnesArmy"
+			"01 Overworld Night",
+			"02 Eerie",
+			"03 Overworld Day",
+			"04 Boss 1",
+			"05 Title Screen",
+			"06 Jungle",
+			"07 Corruption",
+			"08 Hallow",
+			"09 Underground Corruption",
+			"10 Underground Hallow",
+			"11 Boss 2",
+			"12 Underground",
+			"13 Boss 3",
+			"14 Snow",
+			"15 Space",
+			"16 Crimson",
+			"17 Boss 4",
+			"18 Alt Overworld Day",
+			"19 Rain",
+			"20 Underground Snow",
+			"21 Desert",
+			"22 Ocean",
+			"23 Dungeon",
+			"24 Plantera",
+			"25 Boss 5",
+			"26 Temple",
+			"27 Eclipse",
+			"28 Rain Ambience",
+			"29 Mushrooms",
+			"30 Pumpkin Moon",
+			"31 Alt Underground",
+			"32 Frost Moon",
+			"33 Underground Crimson",
+			"34 Lunar Event",
+			"35 Pirate Invasion",
+			"36 Hell",
+			"37 Martian Madness",
+			"38 Moon Lord",
+			"39 Goblin Invasion",
+			"40 Sandstorm",
+			"41 Old One's Army"
 		};
 
 		static XactExtractor() {
@@ -212,7 +212,7 @@ namespace TConvert.Extract {
 			// Skip terraria's wave bank's name. "Wave Bank".
 			reader.BaseStream.Position += 64;
 
-					int EntryMetaDataElementSize = reader.ReadInt32();
+			int EntryMetaDataElementSize = reader.ReadInt32();
 			reader.ReadInt32(); // EntryNameElementSize
 			reader.ReadInt32(); // Alignment
 			wavebank_offset = segmentOffsets[1];
@@ -223,7 +223,7 @@ namespace TConvert.Extract {
 
 			int playregion_offset = segmentOffsets[4];
 			for (int current_entry = 0; current_entry<EntryCount; current_entry++) {
-				String track = current_entry < TrackNames.Length ? TrackNames[current_entry] : (current_entry + 1) + "_Unknown";
+				String track = current_entry < TrackNames.Length ? TrackNames[current_entry] : (current_entry + 1) + " Unknown";
 
 				Status("Extracting " + track);
 				Percentage(0.1f + (0.9f / EntryCount) * current_entry);
@@ -361,7 +361,7 @@ namespace TConvert.Extract {
 					// output.position(pos);
 					writer.Close();
 					
-					Ffmpeg.Convert(wmaPath, path);
+					FFmpeg.Convert(wmaPath, path);
 
 					File.Delete(wmaPath);
 				} else if (codec == MiniFormatTag_ADPCM) {

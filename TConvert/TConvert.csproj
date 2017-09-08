@@ -154,7 +154,7 @@
     <Compile Include="Convert\WavConverter.cs" />
     <Compile Include="Convert\XCompress.cs" />
     <Compile Include="Extract\ADPCMConverter.cs" />
-    <Compile Include="Extract\Ffmpeg.cs" />
+    <Compile Include="Extract\FFmpeg.cs" />
     <Compile Include="Extract\XactExtractor.cs" />
     <Compile Include="Extract\HuffTable.cs" />
     <Compile Include="Extract\LzxBuffer.cs" />

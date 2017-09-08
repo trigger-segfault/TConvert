@@ -33,13 +33,13 @@ using TConvert.Properties;
 using TConvert.Util;
 
 namespace TConvert.Extract {
-	public static class Ffmpeg {
+	public static class FFmpeg {
 		private static readonly string cmd = Path.Combine(
 			Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
 			"ffmpeg.exe"
 		);
 
-		static Ffmpeg() {
+		static FFmpeg() {
 			cmd = EmbeddedApps.ExtractEmbeddedExe("ffmpeg.exe", Resources.ffmpeg);
 		}
 
@@ -62,13 +62,13 @@ namespace TConvert.Extract {
 			List<string> command = new List<string>();
 			string arguments =
 				"-i" + " " +
-				Path.GetFullPath(input) + " " +
+				"\"" + Path.GetFullPath(input) + "\" " +
 				"-acodec" + " " +
 				"pcm_s16le" + " " +
 				"-nostdin" + " " +
 				"-ab" + " " +
 				"128k" + " " +
-				Path.GetFullPath(output);
+				"\"" + Path.GetFullPath(output) + "\"";
 
 			ProcessStartInfo start = new ProcessStartInfo();
 			start.FileName = cmd;
