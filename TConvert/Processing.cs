@@ -877,7 +877,10 @@ namespace TConvert {
 			string newOutput = output;
 			bool newCompress = compress;
 			XmlAttribute attribute;
-			foreach (XmlElement next in element) {
+			foreach (XmlNode nextNode in element) {
+				XmlElement next = nextNode as XmlElement;
+				if (next == null)
+					continue;
 				switch (next.Name) {
 				case "Compress":
 					attribute = next.Attributes["Value"];
@@ -1018,7 +1021,10 @@ namespace TConvert {
 			string newOutput = output;
 			bool newCompress = compress;
 			XmlAttribute attribute;
-			foreach (XmlElement next in element) {
+			foreach (XmlNode nextNode in element) {
+				XmlElement next = nextNode as XmlElement;
+				if (next == null)
+					continue;
 				switch (next.Name) {
 				case "Compress":
 					attribute = next.Attributes["Value"];
