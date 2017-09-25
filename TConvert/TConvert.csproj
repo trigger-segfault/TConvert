@@ -149,7 +149,7 @@
     <Compile Include="Extract\DtxUtil.cs" />
     <Compile Include="Processing.cs" />
     <Compile Include="Startup.cs" />
-    <Compile Include="TerrariaLocator.cs" />
+    <Compile Include="Util\TerrariaLocator.cs" />
     <Compile Include="Convert\PngConverter.cs" />
     <Compile Include="Convert\WavConverter.cs" />
     <Compile Include="Convert\XCompress.cs" />
@@ -160,8 +160,7 @@
     <Compile Include="Extract\LzxBuffer.cs" />
     <Compile Include="Extract\LzxDecoder.cs" />
     <Compile Include="Extract\XnbExtractor.cs" />
-    <Compile Include="Util\EmbeddedApps.cs" />
-    <Compile Include="Util\Extensions.cs" />
+    <Compile Include="Util\EmbeddedResources.cs" />
     <Compile Include="Util\Helpers.cs" />
     <Compile Include="Util\Xnb.cs" />
   </ItemGroup>
@@ -231,4 +230,18 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <!-- https://gist.github.com/thoemmi/3724333 -->
+  <Target Name="EmbedReferencedAssemblies" AfterTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <!-- get list of assemblies to copy -->
+      <!--<AssembliesToEmbed Include="@(ReferenceCopyLocalPaths)" Condition="'%(Filename)%(Extension)' == 'Newtonsoft.Json.dll'" />-->
+      <!-- add these assemblies to the list of embedded resources -->
+      <EmbeddedResource Include="@(AssembliesToEmbed)">
+        <LogicalName>%(Filename)%(Extension)</LogicalName>
+      </EmbeddedResource>
+      <!-- no need to copy the assmblies locally anymore -->
+      <ReferenceCopyLocalPaths Remove="@(AssembliesToEmbed)" />
+    </ItemGroup>
+    <Message Importance="high" Text="Embedding: @(AssembliesToEmbed->'%(Filename)%(Extension)', ', ')" />
+  </Target>
 </Project>
