@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -22,9 +23,36 @@ namespace TConvert {
 		private static object lastException = null;
 
 		#endregion
+		//========= CONSTRUCTORS =========
+		#region Constructors
+
+		/**<summary>Constructs the app and sets up embedded assembly resolving.</summary>*/
+		public App() {
+			AppDomain.CurrentDomain.AssemblyResolve += OnResolveAssemblies;
+		}
+
+		#endregion
 		//============ EVENTS ============
 		#region Events
 
+		private Assembly OnResolveAssemblies(object sender, ResolveEventArgs args) {
+			var executingAssembly = Assembly.GetExecutingAssembly();
+			var assemblyName = new AssemblyName(args.Name);
+
+			string path = assemblyName.Name + ".dll";
+			if (assemblyName.CultureInfo.Equals(CultureInfo.InvariantCulture) == false) {
+				path = String.Format(@"{0}\{1}", assemblyName.CultureInfo, path);
+			}
+
+			using (Stream stream = executingAssembly.GetManifestResourceStream(path)) {
+				if (stream == null)
+					return null;
+
+				byte[] assemblyRawBytes = new byte[stream.Length];
+				stream.Read(assemblyRawBytes, 0, assemblyRawBytes.Length);
+				return Assembly.Load(assemblyRawBytes);
+			}
+		}
 		private void OnAppStartup(object sender, StartupEventArgs e) {
 			// Catch exceptions not in a UI thread
 			AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(OnAppDomainUnhandledException);

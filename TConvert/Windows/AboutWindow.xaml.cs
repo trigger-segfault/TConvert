@@ -60,8 +60,8 @@ namespace TConvert.Windows {
 		//============ EVENTS ============
 		#region Events
 
-		private void OnCloseClicked(object sender, RoutedEventArgs e) {
-			DialogResult = true;
+		private void OnWindowLoaded(object sender, RoutedEventArgs e) {
+			clientArea.Height = 214 + textBlockDescription.ActualHeight;
 		}
 
 		#endregion

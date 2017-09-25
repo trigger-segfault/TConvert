@@ -343,6 +343,26 @@ namespace TConvert {
 		//========== PROCESSING ==========
 		#region Processing
 
+
+		/**<summary>Checks if the extension is that of an audio file.</summary>*/
+		public static bool IsAudioExtension(string ext) {
+			switch (ext) {
+			case ".wav":
+			case ".mp3":
+			case ".mp2":
+			case ".mpga":
+			case ".m4a":
+			case ".aac":
+			case ".flac":
+			case ".ogg":
+			case ".wma":
+			case ".aif":
+			case ".aiff":
+			case ".aifc":
+				return true;
+			}
+			return false;
+		}
 		/**<summary>Processes drop files.</summary>*/
 		public static void ProcessDropFiles(string[] extractFiles, string[] convertFiles, string[] scriptFiles) {
 			List<Script> scripts = new List<Script>();
@@ -406,13 +426,16 @@ namespace TConvert {
 					case ".png":
 					case ".bmp":
 					case ".jpg":
-					case ".wav":
 						if (mode == ProcessModes.Any || mode == ProcessModes.Convert)
 							convertFiles.Add(pair);
 						break;
 					case ".xml":
 						if (mode == ProcessModes.Any || mode == ProcessModes.Script)
 							scriptFiles.Add(pair.Input);
+						break;
+					default:
+						if (IsAudioExtension(ext) && (mode == ProcessModes.Any || mode == ProcessModes.Convert))
+							convertFiles.Add(pair);
 						break;
 					}
 				}
@@ -619,7 +642,7 @@ namespace TConvert {
 			try {
 				string outputFile = Helpers.GetOutputPath(inputFile, inputDirectory, outputDirectory);
 				string ext = Path.GetExtension(inputFile).ToLower();
-				if (((ext == ".png" || ext == ".bmp" || ext == ".jpg") && includeImages) || (ext == ".wav" && includeSounds)) {
+				if (((ext == ".png" || ext == ".bmp" || ext == ".jpg") && includeImages) || (IsAudioExtension(ext) && includeSounds)) {
 					UpdateProgress("Converting: " + Helpers.GetRelativePath(inputFile, inputDirectory));
 				}
 				if ((ext == ".png" || ext == ".bmp" || ext == ".jpg") && includeImages) {
@@ -627,7 +650,7 @@ namespace TConvert {
 					if (PngConverter.Convert(inputFile, outputFile, true, compressImages, true))
 						converted = true;
 				}
-				else if (ext == ".wav" && includeSounds) {
+				else if (IsAudioExtension(ext) && includeSounds) {
 					Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
 					if (WavConverter.Convert(inputFile, outputFile, true))
 						converted = true;
@@ -664,7 +687,7 @@ namespace TConvert {
 			bool converted = false;
 			try {
 				string ext = Path.GetExtension(inputFile).ToLower();
-				if (ext == ".png" || ext == ".bmp" || ext == ".jpg" || ext == ".wav") {
+				if (ext == ".png" || ext == ".bmp" || ext == ".jpg" || IsAudioExtension(ext)) {
 					UpdateProgress("Converting: " + Path.GetFileName(inputFile));
 				}
 				if (ext == ".png" || ext == ".bmp" || ext == ".jpg") {
@@ -672,7 +695,7 @@ namespace TConvert {
 					if (PngConverter.Convert(inputFile, outputFile, true, compress, true))
 						converted = true;
 				}
-				else if (ext == ".wav") {
+				else if (IsAudioExtension(ext)) {
 					Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
 					if (WavConverter.Convert(inputFile, outputFile, true))
 						converted = true;
@@ -865,8 +888,12 @@ namespace TConvert {
 				switch (ext) {
 				case ".xnb": case ".xwb":
 					extracts.Add(file); break;
-				case ".wav": case ".png": case ".bmp": case ".jpg":
+				case ".png": case ".bmp": case ".jpg":
 					converts.Add(file); break;
+				default:
+					if (IsAudioExtension(ext))
+						converts.Add(file);
+					break;
 				}
 			}
 			

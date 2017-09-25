@@ -5,9 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TConvert"
         mc:Ignorable="d"
-        Title="Credits" Height="332" Width="360" Background="#FFECEEF1" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" SnapsToDevicePixels="True" UseLayoutRounding="True" Icon="/Resources/Icons/Credits.png">
-    <Grid>
-        <Button Content="Close" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="80" IsDefault="True" Click="OnCloseClicked"/>
+        Title="Credits" Background="#FFF0F0F0" ResizeMode="NoResize" ShowInTaskbar="False" WindowStartupLocation="CenterOwner" SnapsToDevicePixels="True" UseLayoutRounding="True" Icon="/Resources/Icons/Credits.png" SizeToContent="WidthAndHeight">
+
+    <Grid x:Name="clientArea" Width="360" Height="290">
         <StackPanel Margin="10,10,10,37">
             <TextBlock TextWrapping="Wrap" Padding="5">
                 Image/Sound extraction capabilities thanks to  <Hyperlink NavigateUri="https://github.com/antag99/TExtract" RequestNavigate="OnRequestNavigate">TExtract</Hyperlink>.
@@ -74,5 +74,6 @@
             </TextBlock>
         </StackPanel>
 
+        <Button Content="Close" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="80" IsDefault="True" IsCancel="True"/>
     </Grid>
 </Window>

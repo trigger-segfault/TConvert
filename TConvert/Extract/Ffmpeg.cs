@@ -34,49 +34,49 @@ using TConvert.Util;
 
 namespace TConvert.Extract {
 	public static class FFmpeg {
-		private static readonly string cmd = Path.Combine(
-			Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
-			"ffmpeg.exe"
-		);
+		//========== CONSTANTS ===========
+		#region Constants
 
+		/**<summary>The path of the temporary executable.</summary>*/
+		private static readonly string TempFFmpeg = Path.Combine(Path.GetTempPath(), "TriggersToolsGames", "ffmpeg.exe");
+
+		#endregion
+		//========= CONSTRUCTORS =========
+		#region Constructors
+
+		/**<summary>Extracts FFmpeg.</summary>*/
 		static FFmpeg() {
-			cmd = EmbeddedApps.ExtractEmbeddedExe("ffmpeg.exe", Resources.ffmpeg);
+			EmbeddedResources.Extract(TempFFmpeg, Resources.ffmpeg);
 		}
 
-		public static void Convert(string input, string output) {
-			/*
-			 * Note: From version 1.4, TExtract uses a special version of the
-			 * ffmpeg executable configured with the following options:
-			 * --disable-everything --enable-muxer=wav --enable-encoder=pcm_s16le
-			 * --enable-demuxer=xwma --enable-decoder=wmav2
-			 * --enable-protocol=file --enable-filter=aresample
-			 * It can therefore not resample to another format without
-			 * recompilation with appropriate options. The reason behind this
-			 * is that the original weighted about 27 megabytes, whereas the new
-			 * one weights only 1,5 megabytes.
-			 */
-			if (!File.Exists(cmd)) {
-				File.WriteAllBytes(cmd, Properties.Resources.ffmpeg);
-			}
+		#endregion
+		//========== CONVERTING ==========
+		#region Converting
 
+		/**<summary>Converts the specified input file to wave format.</summary>*/
+		public static bool Convert(string input, string output) {
 			List<string> command = new List<string>();
 			string arguments =
-				"-i" + " " +
-				"\"" + Path.GetFullPath(input) + "\" " +
-				"-acodec" + " " +
-				"pcm_s16le" + " " +
-				"-nostdin" + " " +
-				"-ab" + " " +
-				"128k" + " " +
+				"-i \"" + Path.GetFullPath(input) + "\" " +
+				"-acodec pcm_s16le " +
+				"-nostdin " +
+				"-ab 128k " +
+				//"-fflags +bitexact -flags:a +bitexact " +
+				//"-metadata title=\"\" " +
+				"-map_metadata -1 " +
+				"-y " +
 				"\"" + Path.GetFullPath(output) + "\"";
 
 			ProcessStartInfo start = new ProcessStartInfo();
-			start.FileName = cmd;
+			start.FileName = TempFFmpeg;
 			start.Arguments = arguments;
 			start.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
 
 			Process process = Process.Start(start);
 			process.WaitForExit();
+			return (process.ExitCode == 0);
 		}
+
+		#endregion
 	}
 }

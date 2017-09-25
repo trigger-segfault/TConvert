@@ -26,8 +26,101 @@ using TConvert.Properties;
 using TConvert.Util;
 
 namespace TConvert.Convert {
-
+	/**<summary>A static class for xcompress-based compression and decompression.</summary>*/
 	public static class XCompress {
+		//========== CONSTANTS ===========
+		#region Constants
+
+		/**<summary>The path of the temporary dll.</summary>*/
+		private static readonly string TempXCompressDll = Path.Combine(Path.GetTempPath(), "TriggersToolsGames", "xcompress32.dll");
+		/**<summary>True if xcompress is available to use.</summary>*/
+		public static readonly bool IsAvailable;
+
+		#endregion
+		//========= CONSTRUCTORS =========
+		#region Constructors
+
+		/**<summary>Extracts and loads the xcompress dll.</summary>*/
+		static XCompress() {
+			try {
+				EmbeddedResources.Extract(TempXCompressDll, Resources.xcompress32);
+				EmbeddedResources.LoadDll(TempXCompressDll);
+				Compress(new byte[1]);
+				IsAvailable = true;
+			}
+			catch (DllNotFoundException) {
+				IsAvailable = false;
+			}
+		}
+
+		#endregion
+		//========= COMPRESSION ==========
+		#region Compression
+
+		/**<summary>Compresses the data.</summary>*/
+		public static byte[] Compress(byte[] decompressedData) {
+			// Setup our compression context
+			int compressionContext = 0;
+
+			XMEMCODEC_PARAMETERS_LZX codecParams;
+			codecParams.Flags = 0;
+			codecParams.WindowSize = 64 * 1024;
+			codecParams.CompressionPartitionSize = 256 * 1024;
+
+			XMemCreateCompressionContext(
+				XMEMCODEC_TYPE.XMEMCODEC_LZX,
+				ref codecParams, 0, ref compressionContext);
+
+			// Now lets compress
+			int compressedLen = decompressedData.Length * 2;
+			byte[] compressed = new byte[compressedLen];
+			int decompressedLen = decompressedData.Length;
+			XMemCompress(compressionContext,
+				compressed, ref compressedLen,
+				decompressedData, decompressedLen);
+			// Go ahead and destory our context
+			XMemDestroyCompressionContext(compressionContext);
+
+			// Resize our compressed data
+			Array.Resize<byte>(ref compressed, compressedLen);
+
+			// Now lets return it
+			return compressed;
+		}
+		/**<summary>Decompresses the data.</summary>*/
+		public static byte[] Decompress(byte[] compressedData, byte[] decompressedData) {
+			// Setup our decompression context
+			int DecompressionContext = 0;
+
+			XMEMCODEC_PARAMETERS_LZX codecParams;
+			codecParams.Flags = 0;
+			codecParams.WindowSize = 64 * 1024;
+			codecParams.CompressionPartitionSize = 256 * 1024;
+
+			XMemCreateDecompressionContext(
+				XMEMCODEC_TYPE.XMEMCODEC_LZX,
+				ref codecParams, 0, ref DecompressionContext);
+
+			// Now lets decompress
+			int compressedLen = compressedData.Length;
+			int decompressedLen = decompressedData.Length;
+			try {
+				XMemDecompress(DecompressionContext,
+					decompressedData, ref decompressedLen,
+					compressedData, compressedLen);
+			}
+			catch {
+			}
+			// Go ahead and destory our context
+			XMemDestroyDecompressionContext(DecompressionContext);
+			// Return our decompressed bytes
+			return decompressedData;
+		}
+
+		#endregion
+		//============ NATIVE ============
+		#region Native
+
 		public enum XMEMCODEC_TYPE {
 			XMEMCODEC_DEFAULT = 0,
 			XMEMCODEC_LZX = 1
@@ -70,77 +163,6 @@ namespace TConvert.Convert {
 		[DllImport("xcompress32.dll", EntryPoint = "XMemDestroyDecompressionContext")]
 		public static extern void XMemDestroyDecompressionContext(int Context);
 
-		public static byte[] Compress(byte[] decompressedData) {
-			// Setup our compression context
-			int compressionContext = 0;
-
-			XMEMCODEC_PARAMETERS_LZX codecParams;
-			codecParams.Flags = 0;
-			codecParams.WindowSize = 64 * 1024;
-			codecParams.CompressionPartitionSize = 256 * 1024;
-
-			XMemCreateCompressionContext(
-				XMEMCODEC_TYPE.XMEMCODEC_LZX,
-				ref codecParams, 0, ref compressionContext);
-
-			// Now lets compress
-			int compressedLen = decompressedData.Length * 2;
-			byte[] compressed = new byte[compressedLen];
-			int decompressedLen = decompressedData.Length;
-			XMemCompress(compressionContext,
-				compressed, ref compressedLen,
-				decompressedData, decompressedLen);
-			// Go ahead and destory our context
-			XMemDestroyCompressionContext(compressionContext);
-
-			// Resize our compressed data
-			Array.Resize<byte>(ref compressed, compressedLen);
-
-			// Now lets return it
-			return compressed;
-		}
-
-		public static byte[] Decompress(byte[] compressedData, byte[] decompressedData) {
-			// Setup our decompression context
-			int DecompressionContext = 0;
-
-			XMEMCODEC_PARAMETERS_LZX codecParams;
-			codecParams.Flags = 0;
-			codecParams.WindowSize = 64 * 1024;
-			codecParams.CompressionPartitionSize = 256 * 1024;
-
-			XMemCreateDecompressionContext(
-				XMEMCODEC_TYPE.XMEMCODEC_LZX,
-				ref codecParams, 0, ref DecompressionContext);
-
-			// Now lets decompress
-			int compressedLen = compressedData.Length;
-			int decompressedLen = decompressedData.Length;
-			try {
-				XMemDecompress(DecompressionContext,
-					decompressedData, ref decompressedLen,
-					compressedData, compressedLen);
-			}
-			catch {
-			}
-			// Go ahead and destory our context
-			XMemDestroyDecompressionContext(DecompressionContext);
-			// Return our decompressed bytes
-			return decompressedData;
-		}
-
-		public static readonly bool IsAvailable;
-
-		static XCompress() {
-			try {
-				EmbeddedApps.ExtractEmbeddedDll("xcompress32.dll", Resources.xcompress32);
-				EmbeddedApps.LoadDll("xcompress32.dll");
-				Compress(new byte[1]);
-				IsAvailable = true;
-			}
-			catch (DllNotFoundException) {
-				IsAvailable = false;
-			}
-		}
+		#endregion
 	}
 }

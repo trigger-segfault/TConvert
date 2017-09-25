@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TConvert"
         mc:Ignorable="d"
-        Title="About TConvert" Height="312" Width="400" Background="#FFECEEF1" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False" Icon="/Resources/Icons/About.png" SnapsToDevicePixels="True" UseLayoutRounding="True">
-    <Grid>
+        Title="About TConvert" Background="#FFF0F0F0" WindowStartupLocation="CenterOwner" ResizeMode="NoResize" ShowInTaskbar="False" Icon="/Resources/Icons/About.png" SnapsToDevicePixels="True" UseLayoutRounding="True" SizeToContent="WidthAndHeight" Loaded="OnWindowLoaded">
+
+    <Grid x:Name="clientArea" Width="384" Height="270">
         <Rectangle Fill="#FF72B8D8" HorizontalAlignment="Left" Height="103" Margin="-71,-16,0,0" VerticalAlignment="Top" Width="211" RenderTransformOrigin="0.5,0.5">
             <Rectangle.RenderTransform>
                 <TransformGroup>
@@ -32,9 +33,9 @@
             </Grid>
         </GroupBox>
         <GroupBox Header="Description" Margin="10,143,10,40" BorderBrush="#FFA9B1B6">
-            <TextBlock TextWrapping="WrapWithOverflow" Text="A combination tool for managing Terraria content resources. Convert, extract, backup, and restore. The unofficial sequal to TExtract." Margin="4" Padding="4"/>
+            <TextBlock x:Name="textBlockDescription" TextWrapping="WrapWithOverflow" Text="A combination tool for managing Terraria content resources. Convert, extract, backup, and restore. The unofficial sequal to TExtract." Margin="4" Padding="4" VerticalAlignment="Top"/>
         </GroupBox>
-        <Button Content="Close" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="80" IsDefault="True" Click="OnCloseClicked"/>
+        <Button Content="Close" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="80" IsDefault="True" IsCancel="True"/>
 
     </Grid>
 </Window>

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TConvert.Convert;
 using TConvert.Properties;
+using TConvert.Util;
 
 namespace TConvert {
 	/**<summary>The types of input modes for convert or extract.</summary>*/

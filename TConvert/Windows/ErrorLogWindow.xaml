@@ -11,11 +11,8 @@
         <TaskbarItemInfo/>
     </Window.TaskbarItemInfo>
     <Grid>
-        <Rectangle Fill="#FFF0F0F0" Height="49" Margin="0" VerticalAlignment="Bottom" StrokeThickness="0" Grid.ColumnSpan="2"/>
-        <Button Content="Open Log File" HorizontalAlignment="Left" Margin="18,0,0,12" VerticalAlignment="Bottom" Width="128" Focusable="False" IsTabStop="False" Click="OnOpenLogFile"/>
-        <Button Content="Close" HorizontalAlignment="Right" Margin="0,0,18,12" VerticalAlignment="Bottom" Width="80" Focusable="False" IsTabStop="False" IsCancel="True" IsDefault="True" Grid.Column="1"/>
         <Label Margin="18,15,18,0" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Padding="0" Grid.ColumnSpan="2">
-            <TextBlock  TextWrapping="WrapWithOverflow" Text="Errors and/or warnings occurred during last operation" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold"/>
+            <TextBlock TextWrapping="WrapWithOverflow" Text="Errors and/or warnings occurred during last operation" HorizontalAlignment="Left" VerticalAlignment="Top" FontWeight="Bold"/>
         </Label>
 
         <Border Margin="18,43,18,54" BorderThickness="1" BorderBrush="#FF828790" Grid.ColumnSpan="2">
@@ -23,24 +20,11 @@
                 <TextBlock x:Name="textBlockMessage" Text="Log" HorizontalAlignment="Left" VerticalAlignment="Top"/>
             </ScrollViewer>
         </Border>
-        <!--<ListView Margin="18,43,18,54" BorderThickness="1" Background="#FFFBFBFB" ScrollViewer.VerticalScrollBarVisibility="Visible">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="{x:Type ListViewItem}">
-                    <Setter Property="Background" Value="Transparent" />
-                    <Setter Property="Template">
-                        <Setter.Value>
-                            <ControlTemplate TargetType="{x:Type ListViewItem}">
-                                <ContentPresenter />
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.Items>
-                <Label x:Name="labelMessage" Margin="0" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Padding="0">
-                    <TextBlock x:Name="textBlockMessage1"  TextWrapping="WrapWithOverflow" Text="Exception:" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                </Label>
-            </ListView.Items>
-        </ListView>-->
+
+        <Rectangle Fill="#FFF0F0F0" Height="49" Margin="0" VerticalAlignment="Bottom" StrokeThickness="0" Grid.ColumnSpan="2"/>
+        <Separator Background="#FFDFDFDF" Margin="0,0,0,48" VerticalAlignment="Bottom"/>
+        
+        <Button Content="Open Log File" HorizontalAlignment="Left" Margin="18,0,0,12" VerticalAlignment="Bottom" Width="128" Focusable="False" IsTabStop="False" Click="OnOpenLogFile"/>
+        <Button Content="Close" HorizontalAlignment="Right" Margin="0,0,18,12" VerticalAlignment="Bottom" Width="80" Focusable="False" IsTabStop="False" IsCancel="True" IsDefault="True" Grid.Column="1"/>
     </Grid>
 </Window>

@@ -47,18 +47,32 @@ namespace TConvert {
 			lastFilePath = "";
 
 			// Disable drag/drop text in textboxes so you can scroll their contents easily
-			DataObject.AddCopyingHandler(textBoxTerrariaContent, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
-			DataObject.AddCopyingHandler(textBoxExtractInput, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
-			DataObject.AddCopyingHandler(textBoxExtractOutput, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
-			DataObject.AddCopyingHandler(textBoxConvertInput, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
-			DataObject.AddCopyingHandler(textBoxConvertOutput, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
-			DataObject.AddCopyingHandler(textBoxContent, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
-			DataObject.AddCopyingHandler(textBoxBackup, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
-			DataObject.AddCopyingHandler(textBoxScript, (sender, e) => { if (e.IsDragDrop) e.CancelCommand(); });
+			DataObject.AddCopyingHandler(textBoxTerrariaContent, OnTextBoxCancelDrag);
+			DataObject.AddCopyingHandler(textBoxExtractInput, OnTextBoxCancelDrag);
+			DataObject.AddCopyingHandler(textBoxExtractOutput, OnTextBoxCancelDrag);
+			DataObject.AddCopyingHandler(textBoxConvertInput, OnTextBoxCancelDrag);
+			DataObject.AddCopyingHandler(textBoxConvertOutput, OnTextBoxCancelDrag);
+			DataObject.AddCopyingHandler(textBoxContent, OnTextBoxCancelDrag);
+			DataObject.AddCopyingHandler(textBoxBackup, OnTextBoxCancelDrag);
+			DataObject.AddCopyingHandler(textBoxScript, OnTextBoxCancelDrag);
+
+			// Remove quotes from "Copy Path" command on paste
+			DataObject.AddPastingHandler(textBoxTerrariaContent, OnTextBoxQuotesPaste);
+			DataObject.AddPastingHandler(textBoxExtractInput, OnTextBoxQuotesPaste);
+			DataObject.AddPastingHandler(textBoxExtractOutput, OnTextBoxQuotesPaste);
+			DataObject.AddPastingHandler(textBoxConvertInput, OnTextBoxQuotesPaste);
+			DataObject.AddPastingHandler(textBoxConvertOutput, OnTextBoxQuotesPaste);
+			DataObject.AddPastingHandler(textBoxContent, OnTextBoxQuotesPaste);
+			DataObject.AddPastingHandler(textBoxBackup, OnTextBoxQuotesPaste);
+			DataObject.AddPastingHandler(textBoxScript, OnTextBoxQuotesPaste);
 
 			labelDrop.Visibility = Visibility.Hidden;
 
 			LoadConfig();
+		}
+
+		private void OnTextBoxCancelDrag(object sender, DataObjectPastingEventArgs e) {
+			throw new NotImplementedException();
 		}
 
 		#endregion
@@ -154,6 +168,20 @@ namespace TConvert {
 		private void OnPreviewMouseDown(object sender, MouseButtonEventArgs e) {
 			// Make text boxes lose focus on click away
 			FocusManager.SetFocusedElement(this, this);
+		}
+		private void OnTextBoxCancelDrag(object sender, DataObjectCopyingEventArgs e) {
+			if (e.IsDragDrop)
+				e.CancelCommand();
+		}
+		private void OnTextBoxQuotesPaste(object sender, DataObjectPastingEventArgs e) {
+			var isText = e.SourceDataObject.GetDataPresent(DataFormats.UnicodeText, true);
+			if (!isText) return;
+
+			var text = e.SourceDataObject.GetData(DataFormats.UnicodeText) as string;
+			if (text.StartsWith("\"") || text.EndsWith("\"")) {
+				text = text.Trim('"');
+				Clipboard.SetText(text);
+			}
 		}
 		private void OnTabChanged(object sender, SelectionChangedEventArgs e) {
 			if (!loaded)
@@ -595,11 +623,14 @@ namespace TConvert {
 					case ".png":
 					case ".bmp":
 					case ".jpg":
-					case ".wav":
 						convertFiles.Add(file);
 						break;
 					case ".xml":
 						scriptFiles.Add(file);
+						break;
+					default:
+						if (Processing.IsAudioExtension(ext))
+							convertFiles.Add(file);
 						break;
 					}
 				}
@@ -651,21 +682,29 @@ namespace TConvert {
 		private void OnLaunchTerraria(object sender, RoutedEventArgs e) {
 			if (Config.TerrariaContentDirectory != string.Empty) {
 				try {
+					string dir = Path.GetDirectoryName(Config.TerrariaContentDirectory);
+					string terraria = Path.Combine(dir, "Terraria.exe");
+					if (File.Exists(terraria)) {
+						ProcessStartInfo start = new ProcessStartInfo();
+						start.FileName = terraria;
+						start.Arguments = TerrariaLocator.FindTerraLauncherSaveDirectory(terraria);
+						start.WorkingDirectory = dir;
+						Process.Start(start);
+						return;
+					}
+				}
+				catch { }
+
+				try {
 					string dir = Config.TerrariaContentDirectory;
 					string terraria = Path.Combine(dir, "Terraria.exe");
 					if (File.Exists(terraria)) {
-						Process.Start(terraria);
-					}
-					else {
-						try {
-							dir = Path.GetDirectoryName(Config.TerrariaContentDirectory);
-							terraria = Path.Combine(dir, "Terraria.exe");
-							if (File.Exists(terraria)) {
-								Process.Start(terraria);
-								return;
-							}
-						}
-						catch { }
+						ProcessStartInfo start = new ProcessStartInfo();
+						start.FileName = terraria;
+						start.Arguments = TerrariaLocator.FindTerraLauncherSaveDirectory(terraria);
+						start.WorkingDirectory = dir;
+						Process.Start(start);
+						return;
 					}
 				}
 				catch { }
@@ -758,14 +797,15 @@ namespace TConvert {
 						dialog = new OpenFileDialog();
 					else
 						dialog = new SaveFileDialog();
+					string audioFiles = "*.wav;*.mp3;*.mp2;*.mpga;*.m4a;*.aac;*.flac;*.ogg;*.wma;*.aif;*.aiff;*.aifc";
 					dialog.Filter = (extract == input ?
-						"Xna files (*.xnb, *.xwb)|*.xnb;*.xwb|" +
-						"Xnb files (*.xnb)|*.xnb|" +
-						"Xwb files (*.xwb)|*.xwb|" :
-						"Image & Wav files (*.png, *.bmp, *.jpg, *.wav)|*.png;*.bmp;*.jpg;*.wav|" +
-						"Image files (*.png, *.bmp, *.jpg)|*.png;*.bmp;*.jpg;|" +
-						"Wav files (*.wav)|*.wav|"
-						) + "All files (*.*)|*.*";
+						"Xna files|*.xnb;*.xwb|" +
+						"Xnb files|*.xnb|" +
+						"Xwb files|*.xwb|" :
+						"Image & Audio files (*.png;*.wav;...)|*.png;*.bmp;*.jpg;" + audioFiles + "|" +
+						"Image files|*.png;*.bmp;*.jpg;|" +
+						"Audio files (*.wav;*.mp3;...)|" + audioFiles + "|"
+						) + "All files|*.*";
 					dialog.FilterIndex = 0;
 					dialog.Title = "Choose " + (input ? "input" : "output") + " file";
 					dialog.CheckFileExists = input;
