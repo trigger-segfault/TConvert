@@ -1,11 +1,18 @@
 # TConvert ![AppIcon](http://i.imgur.com/5WPwZ3W.png)
+
+[![Latest Release](https://img.shields.io/github/release/trigger-death/TConvert.svg?style=flat&label=version)](https://github.com/trigger-death/TConvert/releases/latest)
+[![Latest Release Date](https://img.shields.io/github/release-date-pre/trigger-death/TConvert.svg?style=flat&label=released)](https://github.com/trigger-death/TConvert/releases/latest)
+[![Total Downloads](https://img.shields.io/github/downloads/trigger-death/TConvert/total.svg?style=flat)](https://github.com/trigger-death/TConvert/releases)
+[![Creation Date](https://img.shields.io/badge/created-august%202017-A642FF.svg?style=flat)](https://github.com/trigger-death/TConvert/commit/81d10e01975c1974f73ee90089fa30d85e71370e)
+[![Terraria Forums](https://img.shields.io/badge/terraria-forums-28A828.svg?style=flat)](https://forums.terraria.org/index.php?threads/61706/)
+
 A combination tool for managing Terraria content resources. Convert, extract, backup, and restore. The unofficial sequel to TExtract.
 
 ![Window Preview](http://i.imgur.com/oTuVrGQ.png)
 
 ### [Wiki](https://github.com/trigger-death/TConvert/wiki) | [Credits](https://github.com/trigger-death/TConvert/wiki/Credits) | [Image Album](http://imgur.com/a/QaoPd)
 
-### [![Get TConvert](http://i.imgur.com/4BGRFF0.png)](https://github.com/trigger-death/TConvert/releases/tag/1.0.1.0)
+### [![Get TConvert](http://i.imgur.com/4BGRFF0.png)](https://github.com/trigger-death/TConvert/releases/latest)
 
 ## About
 
