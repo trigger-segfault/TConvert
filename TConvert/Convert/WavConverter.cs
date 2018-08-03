@@ -97,8 +97,7 @@ namespace TConvert.Convert {
 						throw new WavException("Average bytes per second number incorrect.");
 					if (nBlockAlign != (nChannels * (wBitsPerSample / 8)))
 						throw new WavException("Block align number incorrect.");
-
-
+					
 					inputStream.Position = chunkSize;
 
 					format = new string(reader.ReadChars(4));

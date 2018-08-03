@@ -16,7 +16,7 @@ using System.Windows;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Trigger's Tools & Games")]
 [assembly: AssemblyProduct("TConvert")]
-[assembly: AssemblyCopyright("Copyright © Robert Jordan 2017")]
+[assembly: AssemblyCopyright("Copyright © Robert Jordan 2018")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -55,8 +55,8 @@ using System.Windows;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.0.1.0")]
-[assembly: AssemblyFileVersion("1.0.1.0")]
+[assembly: AssemblyVersion("1.0.2.0")]
+[assembly: AssemblyFileVersion("1.0.2.0")]
 [assembly: Guid("81FD8C9E-23D9-4CE3-95F7-21B735444371")]
 [assembly: NeutralResourcesLanguage("en-US")]
 

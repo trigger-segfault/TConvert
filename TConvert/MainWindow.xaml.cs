@@ -144,6 +144,7 @@ namespace TConvert {
 
 			menuItemCompressImages.IsEnabled = XCompress.IsAvailable;
 			menuItemCompressImages.IsChecked = Config.CompressImages;
+			menuItemPremultiply.IsChecked = Config.PremultiplyAlpha;
 			menuItemCompletionSound.IsChecked = Config.CompletionSound;
 			menuItemAutoCloseProgress.IsChecked = Config.AutoCloseProgress;
 			menuItemAutoCloseDropProgress.IsChecked = Config.AutoCloseDropProgress;
@@ -251,7 +252,7 @@ namespace TConvert {
 					Processing.ExtractSingleFile(input, output);
 				});
 			}
-			Processing.StartProgressThread(this, "Extracting...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, thread);
+			Processing.StartProgressThread(this, "Extracting...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, Config.PremultiplyAlpha, thread);
 		}
 		private void OnExtractModeChanged(object sender, SelectionChangedEventArgs e) {
 			if (!loaded)
@@ -374,7 +375,7 @@ namespace TConvert {
 					Processing.ConvertSingleFile(input, output);
 				});
 			}
-			Processing.StartProgressThread(this, "Converting...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, thread);
+			Processing.StartProgressThread(this, "Converting...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, Config.PremultiplyAlpha, thread);
 		}
 		private void OnConvertModeChanged(object sender, SelectionChangedEventArgs e) {
 			if (!loaded)
@@ -471,7 +472,7 @@ namespace TConvert {
 			Thread thread = new Thread(() => {
 				Processing.BackupFiles(input, output);
 			});
-			Processing.StartProgressThread(this, "Backing Up...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, thread);
+			Processing.StartProgressThread(this, "Backing Up...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, Config.PremultiplyAlpha, thread);
 		}
 		private void OnRestore(object sender, RoutedEventArgs e) {
 			string input = Config.Backup.FolderBackup;
@@ -495,7 +496,7 @@ namespace TConvert {
 			Thread thread = new Thread(() => {
 				Processing.RestoreFiles(input, output);
 			});
-			Processing.StartProgressThread(this, "Restoring...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, thread);
+			Processing.StartProgressThread(this, "Restoring...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, Config.PremultiplyAlpha, thread);
 		}
 		private void OnBackupChangeContent(object sender, RoutedEventArgs e) {
 			System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
@@ -556,7 +557,7 @@ namespace TConvert {
 			thread = new Thread(() => {
 				Processing.RunScript(input);
 			});
-			Processing.StartProgressThread(this, "Running Script...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, thread);
+			Processing.StartProgressThread(this, "Running Script...", Config.AutoCloseProgress, Config.CompressImages, Config.CompletionSound, Config.PremultiplyAlpha, thread);
 		}
 		private void OnChangeScript(object sender, RoutedEventArgs e) {
 			OpenFileDialog dialog = new OpenFileDialog();
@@ -648,7 +649,7 @@ namespace TConvert {
 					Thread thread = new Thread(() => {
 						Processing.ProcessDropFiles(extractFiles.ToArray(), convertFiles.ToArray(), scriptFiles.ToArray());
 					});
-					Processing.StartProgressThread(this, "Processing Drop Files...", Config.AutoCloseDropProgress, Config.CompressImages, Config.CompletionSound, thread);
+					Processing.StartProgressThread(this, "Processing Drop Files...", Config.AutoCloseDropProgress, Config.CompressImages, Config.CompletionSound, Config.PremultiplyAlpha, thread);
 				}
 			}
 		}
@@ -730,6 +731,11 @@ namespace TConvert {
 			Close();
 		}
 
+		private void OnPremultiplyAlphaChecked(object sender, RoutedEventArgs e) {
+			if (!loaded)
+				return;
+			Config.PremultiplyAlpha = menuItemPremultiply.IsChecked;
+		}
 		private void OnCompressImagesChecked(object sender, RoutedEventArgs e) {
 			if (!loaded)
 				return;

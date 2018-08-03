@@ -44,6 +44,11 @@
                 </MenuItem>
             </MenuItem>
             <MenuItem Header="Options">
+                <MenuItem x:Name="menuItemPremultiply" Header="Premultiply Alpha" IsCheckable="True">
+                    <MenuItem.Icon>
+                        <Image Source="Resources/Icons/Premultiply.png"/>
+                    </MenuItem.Icon>
+                </MenuItem>
                 <MenuItem x:Name="menuItemCompressImages" Header="Compress Images" Click="OnCompressImagesChecked" IsCheckable="True">
                     <MenuItem.Icon>
                         <Image Source="Resources/Icons/Compression.png"/>

@@ -40,7 +40,9 @@ namespace TConvert {
 			//AutoCloseDef= 0x4000,
 			//KeepOpenDef = 0x8000,
 			Compress	= 0x10000,
-			DontCompress= 0x20000
+			DontCompress= 0x20000,
+			Premultiply	= 0x40000,
+			DontPremultiply	= 0x80000,
 		}
 
 		/**<summary>Information about a command line option.</summary>*/
@@ -96,6 +98,8 @@ namespace TConvert {
 			
 			{ ArgTypes.Compress,new OptionInfo(ProcessCompress, "Compress", "Images will be compressed.", null, "-ic", "--compress") },
 			{ ArgTypes.DontCompress,new OptionInfo(ProcessDontCompress, "Don't Compress", "Images will not be compressed.", null, "-dc", "--dont-compress") },
+			{ ArgTypes.Premultiply, new OptionInfo(ProcessPremultiply, "Premultiply", "RGB will be multiplied by alpha.", null, "-pr", "--premult") },
+			{ ArgTypes.DontPremultiply, new OptionInfo(ProcessDontPremultiply, "Don't Premultiply", "RGB will not be modified.", null, "-dp", "--dont-premult") },
 		};
 
 		#endregion
@@ -124,6 +128,8 @@ namespace TConvert {
 		private static bool autoClose = Settings.Default.AutoCloseCmdProgress;
 		/**<summary>True if images are compressed.</summary>*/
 		private static bool compress = Settings.Default.CompressImages && XCompress.IsAvailable;
+		/**<summary>True if alpha is premultiplied.</summary>*/
+		private static bool premultiply = Settings.Default.PremultiplyAlpha;
 		/**<summary>True if a sound is played upon completion.</summary>*/
 		private static bool sound = Settings.Default.CompletionSound;
 		/**<summary>True if in console-only mode.</summary>*/
@@ -335,12 +341,12 @@ namespace TConvert {
 			});
 			#if !(CONSOLE)
 			if (!console) {
-				Processing.StartProgressThread(null, "Processing Files...", autoClose, compress, sound, thread);
+				Processing.StartProgressThread(null, "Processing Files...", autoClose, compress, sound, premultiply, thread);
 			}
 			else
 			#endif
 			{
-				Processing.StartConsoleThread("Processing Files...", silent, compress, sound, thread);
+				Processing.StartConsoleThread("Processing Files...", silent, compress, sound, premultiply, thread);
 			}
 		}
 
@@ -553,6 +559,24 @@ namespace TConvert {
 				LogOptionAlreadySpecified(ArgTypes.DontCompress);
 			else
 				compress = false;
+		}
+		/**<summary>Processes the Premultiply option.</summary>*/
+		private static void ProcessPremultiply() {
+			if (passedArgs.HasFlag(ArgTypes.Premultiply))
+				LogOptionAlreadySpecified(ArgTypes.Premultiply);
+			if (passedArgs.HasFlag(ArgTypes.DontPremultiply))
+				LogOptionAlreadySpecified(ArgTypes.DontPremultiply);
+			else
+				premultiply = true;
+		}
+		/**<summary>Processes the Premultiply option.</summary>*/
+		private static void ProcessDontPremultiply() {
+			if (passedArgs.HasFlag(ArgTypes.Premultiply))
+				LogOptionAlreadySpecified(ArgTypes.Premultiply);
+			if (passedArgs.HasFlag(ArgTypes.DontPremultiply))
+				LogOptionAlreadySpecified(ArgTypes.DontPremultiply);
+			else
+				premultiply = false;
 		}
 
 		#endregion

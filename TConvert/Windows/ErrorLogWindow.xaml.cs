@@ -74,10 +74,6 @@ namespace TConvert.Windows {
 		//============ EVENTS ============
 		#region Events
 
-		private void OnWindowLoaded(object sender, RoutedEventArgs e) {
-			//TaskbarItemInfo.ProgressValue = 1.0;
-			//TaskbarItemInfo.ProgressState = TaskbarItemProgressState.Error;
-		}
 		private void OnOpenLogFile(object sender, RoutedEventArgs e) {
 			Process.Start(ErrorLogger.LogPath);
 		}

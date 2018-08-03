@@ -61,8 +61,6 @@ namespace TConvert.Extract {
 				"-acodec pcm_s16le " +
 				"-nostdin " +
 				"-ab 128k " +
-				//"-fflags +bitexact -flags:a +bitexact " +
-				//"-metadata title=\"\" " +
 				"-map_metadata -1 " +
 				"-y " +
 				"\"" + Path.GetFullPath(output) + "\"";

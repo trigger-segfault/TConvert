@@ -43,17 +43,21 @@ namespace TConvert {
 		public string Output;
 		/**<summary>True if compression should be used.</summary>*/
 		public bool Compress;
+		/**<summary>True if alpha is premultiplied.</summary>*/
+		public bool Premultiply;
 		/**<summary>Constructs a path pair.</summary>*/
 		public PathPair(string input, string output) {
 			Input = input;
 			Output = output;
 			Compress = false;
+			Premultiply = true;
 		}
 		/**<summary>Constructs a path pair.</summary>*/
-		public PathPair(string input, string output, bool compress) {
+		public PathPair(string input, string output, bool compress, bool premultiply) {
 			Input = input;
 			Output = output;
 			Compress = compress;
+			Premultiply = premultiply;
 		}
 	}
 	/**<summary>A loaded script.</summary>*/
@@ -106,6 +110,8 @@ namespace TConvert {
 		private static bool compressImages = true;
 		/**<summary>True if a sound is played upon completion.</summary>*/
 		private static bool completionSound;
+		/**<summary>True if alpha is premultiplied when converting back to xnb.</summary>*/
+		private static bool premultiplyAlpha = true;
 
 		#endregion
 		//--------------------------------
@@ -119,28 +125,29 @@ namespace TConvert {
 		private static bool silent;
 		/**<summary>The start time of the console operation.</summary>*/
 		private static DateTime startTime;
-		
+
 		#endregion
 		//--------------------------------
 		#region Window Only
 
-		#if !(CONSOLE)
+#if !(CONSOLE)
 		private static ProgressWindow progressWindow;
 		private static bool autoCloseProgress;
 		private static bool console = false;
-		#endif
-			
+#endif
+
 		#endregion
 		//--------------------------------
 		#endregion
 		//=========== STARTING ===========
 		#region Starting
 
-		#if !(CONSOLE)
+#if !(CONSOLE)
 		/**<summary>Starts a progress window processing thread.</summary>*/
-		public static void StartProgressThread(Window owner, string message, bool autoClose, bool compress, bool sound, Thread thread) {
+		public static void StartProgressThread(Window owner, string message, bool autoClose, bool compress, bool sound, bool premultiply, Thread thread) {
 			console = false;
 			compressImages = compress;
+			premultiplyAlpha = premultiply;
 			completionSound = sound;
 			lastUpdate = DateTime.MinValue;
 			autoCloseProgress = autoClose;
@@ -162,14 +169,15 @@ namespace TConvert {
 			});
 			showThread.Start();
 		}
-		#endif
+#endif
 		/**<summary>Starts a console processing thread.</summary>*/
-		public static void StartConsoleThread(string message, bool silent, bool compress, bool sound, Thread thread) {
+		public static void StartConsoleThread(string message, bool silent, bool compress, bool sound, bool premultiply, Thread thread) {
 			#if !(CONSOLE)
 			console = true;
 			#endif
-			completionSound = sound;
 			compressImages = compress;
+			premultiplyAlpha = premultiply;
+			completionSound = sound;
 			Processing.silent = silent;
 			startTime = DateTime.Now;
 			lastUpdate = DateTime.MinValue;
@@ -647,7 +655,7 @@ namespace TConvert {
 				}
 				if ((ext == ".png" || ext == ".bmp" || ext == ".jpg") && includeImages) {
 					Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
-					if (PngConverter.Convert(inputFile, outputFile, true, compressImages, true))
+					if (PngConverter.Convert(inputFile, outputFile, true, compressImages, true, premultiplyAlpha))
 						converted = true;
 				}
 				else if (IsAudioExtension(ext) && includeSounds) {
@@ -692,7 +700,7 @@ namespace TConvert {
 				}
 				if (ext == ".png" || ext == ".bmp" || ext == ".jpg") {
 					Helpers.CreateDirectorySafe(Path.GetDirectoryName(outputFile));
-					if (PngConverter.Convert(inputFile, outputFile, true, compress, true))
+					if (PngConverter.Convert(inputFile, outputFile, true, compress, true, premultiplyAlpha))
 						converted = true;
 				}
 				else if (IsAudioExtension(ext)) {
@@ -873,7 +881,7 @@ namespace TConvert {
 
 			// Find all the files and restores
 			if (root != null) {
-				LoadScriptFolder(root, files, backups, restores, "", "", compressImages, true);
+				LoadScriptFolder(root, files, backups, restores, "", "", compressImages, premultiplyAlpha, true);
 			}
 			else {
 				LogError("Reading Script", "No root element TConvertScript.");
@@ -900,9 +908,10 @@ namespace TConvert {
 			return new Script { Extracts=extracts, Converts=converts, Backups=backups, Restores=restores };
 		}
 		/**<summary>Loads a script folder or root element.</summary>*/
-		private static void LoadScriptFolder(XmlElement element, List<PathPair> files, List<PathPair> backups, List<PathPair> restores, string output, string path, bool compress, bool isRoot = false) {
+		private static void LoadScriptFolder(XmlElement element, List<PathPair> files, List<PathPair> backups, List<PathPair> restores, string output, string path, bool compress, bool premultiply, bool isRoot = false) {
 			string newOutput = output;
 			bool newCompress = compress;
+			bool newPremultiply = premultiply;
 			XmlAttribute attribute;
 			foreach (XmlNode nextNode in element) {
 				XmlElement next = nextNode as XmlElement;
@@ -920,6 +929,19 @@ namespace TConvert {
 					}
 					else {
 						LogWarning("Reading Script", "No Value attribute in Compress.");
+					}
+					break;
+				case "Premultiply":
+					attribute = next.Attributes["Value"];
+					if (attribute != null) {
+						bool nextPremultiply;
+						if (bool.TryParse(attribute.InnerText, out nextPremultiply))
+							newPremultiply = nextPremultiply;
+						else
+							LogWarning("Reading Script", "Failed to parse Value attribute in Premultiply: '" + attribute.InnerText + "'.");
+					}
+					else {
+						LogWarning("Reading Script", "No Value attribute in Premultiply.");
 					}
 					break;
 				case "Backup":
@@ -986,7 +1008,7 @@ namespace TConvert {
 								nextPath = attribute.InnerText;
 							else
 								nextPath = Path.Combine(path, attribute.InnerText);
-							LoadScriptFolder(next, files, backups, restores, newOutput, nextPath, newCompress);
+							LoadScriptFolder(next, files, backups, restores, newOutput, nextPath, newCompress, newPremultiply);
 						}
 						else {
 							LogWarning("Reading Script", "Invalid Path attribute in Folder: '" + attribute.InnerText + "'.");
@@ -1002,6 +1024,7 @@ namespace TConvert {
 						if (Helpers.IsPathValid(attribute.InnerText)) {
 							string nextPath;
 							bool nextCompress = newCompress;
+							bool nextPremultiply = true;
 							if (path == string.Empty)
 								nextPath = attribute.InnerText;
 							else
@@ -1013,6 +1036,13 @@ namespace TConvert {
 									nextCompress = newCompress;
 								}
 							}
+							attribute = next.Attributes["Premultiply"];
+							if (attribute != null) {
+								if (!bool.TryParse(attribute.InnerText, out nextPremultiply)) {
+									LogWarning("Reading Script", "Failed to parse Premultiply attribute in Out: '" + attribute.InnerText + "'.");
+									nextPremultiply = true;
+								}
+							}
 							attribute = next.Attributes["OutPath"];
 							if (attribute != null) {
 								if (Helpers.IsPathValid(attribute.InnerText)) {
@@ -1021,13 +1051,13 @@ namespace TConvert {
 										nextOutput = Helpers.FixPathSafe(attribute.InnerText);
 									else
 										nextOutput = Path.Combine(newOutput, attribute.InnerText);
-									files.Add(new PathPair(nextPath, nextOutput, nextCompress));
+									files.Add(new PathPair(nextPath, nextOutput, nextCompress, nextPremultiply));
 								}
 								else {
 									LogWarning("Reading Script", "Invalid OutPath attribute in File: '" + attribute.InnerText + "'."); ;
 								}
 							}
-							LoadScriptFile(next, files, newOutput, nextPath, nextCompress);
+							LoadScriptFile(next, files, newOutput, nextPath, nextCompress, nextPremultiply);
 						}
 						else {
 							LogWarning("Reading Script", "Invalid Path attribute in File: '" + attribute.InnerText + "'.");
@@ -1044,9 +1074,10 @@ namespace TConvert {
 			}
 		}
 		/**<summary>Loads a script file.</summary>*/
-		private static void LoadScriptFile(XmlElement element, List<PathPair> files, string output, string path, bool compress) {
+		private static void LoadScriptFile(XmlElement element, List<PathPair> files, string output, string path, bool compress, bool premultiply) {
 			string newOutput = output;
 			bool newCompress = compress;
+			bool newPremultiply = premultiply;
 			XmlAttribute attribute;
 			foreach (XmlNode nextNode in element) {
 				XmlElement next = nextNode as XmlElement;
@@ -1064,6 +1095,19 @@ namespace TConvert {
 					}
 					else {
 						LogWarning("Reading Script", "No Value attribute in Compress.");
+					}
+					break;
+				case "Premultiply":
+					attribute = next.Attributes["Value"];
+					if (attribute != null) {
+						bool nextPremultiply;
+						if (bool.TryParse(attribute.InnerText, out nextPremultiply))
+							newPremultiply = nextPremultiply;
+						else
+							LogWarning("Reading Script", "Failed to parse Value attribute in Premultiply: '" + attribute.InnerText + "'.");
+					}
+					else {
+						LogWarning("Reading Script", "No Value attribute in Premultiply.");
 					}
 					break;
 				case "Output":
@@ -1089,6 +1133,7 @@ namespace TConvert {
 						if (Helpers.IsPathValid(attribute.InnerText)) {
 							string nextOutput;
 							bool nextCompress = newCompress;
+							bool nextPremultiply = newPremultiply;
 							if (newOutput == string.Empty)
 								nextOutput = attribute.InnerText;
 							else
@@ -1100,7 +1145,14 @@ namespace TConvert {
 									nextCompress = newCompress;
 								}
 							}
-							files.Add(new PathPair(path, nextOutput, nextCompress));
+							attribute = next.Attributes["Premultiply"];
+							if (attribute != null) {
+								if (!bool.TryParse(attribute.InnerText, out nextPremultiply)) {
+									LogWarning("Reading Script", "Failed to parse Premultiply attribute in Out: '" + attribute.InnerText + "'.");
+									nextPremultiply = newPremultiply;
+								}
+							}
+							files.Add(new PathPair(path, nextOutput, nextCompress, nextPremultiply));
 						}
 						else {
 							LogWarning("Reading Script", "Invalid Path attribute in Out: '" + attribute.InnerText + "'.");

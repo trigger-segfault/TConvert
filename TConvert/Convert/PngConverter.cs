@@ -53,7 +53,7 @@ namespace TConvert.Convert {
 		#region Converting
 
 		/**<summary>Converts the specified input file and writes it to the output file.</summary>*/
-		public static bool Convert(string inputFile, string outputFile, bool changeExtension, bool compressed, bool reach) {
+		public static bool Convert(string inputFile, string outputFile, bool changeExtension, bool compressed, bool reach, bool premultiply) {
 			if (changeExtension) {
 				outputFile = Path.ChangeExtension(outputFile, ".xnb");
 			}
@@ -80,11 +80,11 @@ namespace TConvert.Convert {
 						}
 						writer.Write(flagBits); // flag-bits; 00=reach, 01=hiprofile, 80=compressed, 00=uncompressed
 						if (compressed) {
-							WriteCompressedData(writer, bmp);
+							WriteCompressedData(writer, bmp, premultiply);
 						}
 						else {
 							writer.Write(MetadataSize + bmp.Width * bmp.Height * 4); // compressed file size
-							WriteData(bmp, writer);
+							WriteData(bmp, writer, premultiply);
 						}
 					}
 				}
@@ -97,11 +97,11 @@ namespace TConvert.Convert {
 		#region Writing
 
 		/**<summary>Write compressed image data.</summary>*/
-		private static void WriteCompressedData(BinaryWriter writer, Bitmap png) {
+		private static void WriteCompressedData(BinaryWriter writer, Bitmap png, bool premultiply) {
 			using (MemoryStream stream = new MemoryStream()) {
 				byte[] uncompressedData;
 				using (BinaryWriter writer2 = new BinaryWriter(stream)) {
-					WriteData(png, writer2);
+					WriteData(png, writer2, premultiply);
 					uncompressedData = stream.ToArray();
 				}
 				byte[] compressedData = XCompress.Compress(uncompressedData);
@@ -111,7 +111,7 @@ namespace TConvert.Convert {
 			}
 		}
 		/**<summary>Write uncompressed image data.</summary>*/
-		private static void WriteData(Bitmap bmp, BinaryWriter writer) {
+		private static void WriteData(Bitmap bmp, BinaryWriter writer, bool premultiply) {
 			writer.Write7BitEncodedInt(1);                 // type-reader-count
 			writer.Write7BitEncodedString(Texture2DType);  // type-reader-name
 			writer.Write((int)0);                          // reader version number
@@ -130,14 +130,30 @@ namespace TConvert.Convert {
 			}
 			BitmapData bitmapData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), ImageLockMode.ReadWrite, PixelFormat.Format32bppArgb);
 			try {
-				var length = bitmapData.Stride * bitmapData.Height;
+				int length = bitmapData.Stride * bitmapData.Height;
 				byte[] bytes = new byte[length];
 				Marshal.Copy(bitmapData.Scan0, bytes, 0, length);
-				// Swap the R and B channels
 				for (int i = 0; i < bytes.Length; i += 4) {
-					byte b = bytes[i];
-					bytes[i] = bytes[i + 2];
-					bytes[i + 2] = b;
+					// Always swap red and blue channels premultiply alpha if requested
+					int a = bytes[i + 3];
+					if (!premultiply || a == 255) {
+						// No premultiply necessary
+						byte b = bytes[i];
+						bytes[i] = bytes[i + 2];
+						bytes[i + 2] = b;
+					}
+					else if (a != 0) {
+						byte b = bytes[i];
+						bytes[i] = (byte) (bytes[i + 2] * a / 255);
+						bytes[i + 1] = (byte) (bytes[i + 1] * a / 255);
+						bytes[i + 2] = (byte) (b * a / 255);
+					}
+					else {
+						// alpha is zero, so just zero everything
+						bytes[i] = 0;
+						bytes[i + 1] = 0;
+						bytes[i + 2] = 0;
+					}
 				}
 				writer.Write(bytes);
 			}

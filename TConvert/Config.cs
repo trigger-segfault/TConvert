@@ -39,6 +39,8 @@ namespace TConvert {
 		public static bool CompressImages { get; set; }
 		/**<summary>True if a sound is played on completion.</summary>*/
 		public static bool CompletionSound { get; set; }
+		/**<summary>True if alpha is premultiplied by default when converting to xnb.</summary>*/
+		public static bool PremultiplyAlpha { get; set; }
 
 		#endregion
 		//=========== CLASSES ============
@@ -181,6 +183,7 @@ namespace TConvert {
 			AutoCloseCmdProgress = Settings.Default.AutoCloseCmdProgress;
 			CompressImages = Settings.Default.CompressImages && XCompress.IsAvailable;
 			CompletionSound = Settings.Default.CompletionSound;
+			PremultiplyAlpha = Settings.Default.PremultiplyAlpha;
 
 			Extract.FolderInput = Settings.Default.ExtractFolderInput;
 			Extract.FolderOutput = Settings.Default.ExtractFolderOutput;
@@ -224,6 +227,7 @@ namespace TConvert {
 			Settings.Default.AutoCloseCmdProgress = AutoCloseCmdProgress;
 			Settings.Default.CompressImages = CompressImages;
 			Settings.Default.CompletionSound = CompletionSound;
+			Settings.Default.PremultiplyAlpha = PremultiplyAlpha;
 
 			Settings.Default.ExtractFolderInput = Extract.FolderInput;
 			Settings.Default.ExtractFolderOutput = Extract.FolderOutput;

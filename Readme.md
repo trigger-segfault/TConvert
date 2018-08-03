@@ -8,16 +8,16 @@
 
 A combination tool for managing Terraria content resources. Convert, extract, backup, and restore. The unofficial sequel to TExtract.
 
-![Window Preview](http://i.imgur.com/oTuVrGQ.png)
+![Window Preview](https://i.imgur.com/oTuVrGQ.png)
 
-### [Wiki](https://github.com/trigger-death/TConvert/wiki) | [Credits](https://github.com/trigger-death/TConvert/wiki/Credits) | [Image Album](http://imgur.com/a/QaoPd)
+### [Wiki](https://github.com/trigger-death/TConvert/wiki) | [Credits](https://github.com/trigger-death/TConvert/wiki/Credits) | [Image Album](https://imgur.com/a/QaoPd)
 
 ### [![Get TConvert](http://i.imgur.com/4BGRFF0.png)](https://github.com/trigger-death/TConvert/releases/latest)
 
 ## About
 
 * **Created By:** Robert Jordan
-* **Version:** 1.0.1.0
+* **Version:** 1.0.2.0
 * **Language:** C#, WPF
 
 ## Requirements for Running

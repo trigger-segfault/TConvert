@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:TConvert.Windows"
         mc:Ignorable="d"
         Height="350" Width="500" WindowStartupLocation="CenterOwner" 
-        Title="Error Log" Icon="/Resources/Icons/AppError.ico" ShowInTaskbar="False" MinWidth="500" MinHeight="350" Loaded="OnWindowLoaded">
+        Title="Error Log" Icon="/Resources/Icons/AppError.ico" ShowInTaskbar="False" MinWidth="500" MinHeight="350">
     <Window.TaskbarItemInfo>
         <TaskbarItemInfo/>
     </Window.TaskbarItemInfo>
