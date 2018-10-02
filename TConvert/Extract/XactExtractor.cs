@@ -107,27 +107,36 @@ namespace TConvert.Extract {
 				Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location),
 				WaveBankList
 			);
-			if (File.Exists(path)) {
-				ReadWaveBankList(path);
-				return;
-			}
-			path = Path.Combine(
-				Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-				"My Games", "Terraria", WaveBankList
-			);
-			if (File.Exists(path)) {
-				ReadWaveBankList(path);
-				return;
-			}
-			if (TerrariaLocator.TerrariaContentDirectory != "") {
-				path = Path.Combine(
-					Path.GetDirectoryName(TerrariaLocator.TerrariaContentDirectory),
-					WaveBankList
-				);
+			try {
 				if (File.Exists(path)) {
 					ReadWaveBankList(path);
 					return;
 				}
+			}
+			catch { }
+			path = Path.Combine(
+				Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+				"My Games", "Terraria", WaveBankList
+			);
+			try {
+				if (File.Exists(path)) {
+					ReadWaveBankList(path);
+					return;
+				}
+			}
+			catch { }
+			if (!string.IsNullOrEmpty(TerrariaLocator.TerrariaContentDirectory)) {
+				path = Path.Combine(
+					Path.GetDirectoryName(TerrariaLocator.TerrariaContentDirectory),
+					WaveBankList
+				);
+				try {
+					if (File.Exists(path)) {
+						ReadWaveBankList(path);
+						return;
+					}
+				}
+				catch { }
 			}
 		}
 		private static void ReadWaveBankList(string filepath) {
