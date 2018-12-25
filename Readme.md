@@ -5,6 +5,7 @@
 [![Total Downloads](https://img.shields.io/github/downloads/trigger-death/TConvert/total.svg?style=flat)](https://github.com/trigger-death/TConvert/releases)
 [![Creation Date](https://img.shields.io/badge/created-august%202017-A642FF.svg?style=flat)](https://github.com/trigger-death/TConvert/commit/81d10e01975c1974f73ee90089fa30d85e71370e)
 [![Terraria Forums](https://img.shields.io/badge/terraria-forums-28A828.svg?style=flat)](https://forums.terraria.org/index.php?threads/61706/)
+[![Discord](https://img.shields.io/discord/436949335947870238.svg?style=flat&logo=discord&label=chat&colorB=7389DC&link=https://discord.gg/vB7jUbY)](https://discord.gg/vB7jUbY)
 
 A combination tool for managing Terraria content resources. Convert, extract, backup, and restore. The unofficial sequel to TExtract.
 
