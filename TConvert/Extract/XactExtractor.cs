@@ -57,47 +57,97 @@ namespace TConvert.Extract {
 
 		/** Mapping of music wave bank indexes to their names */
 		private static string[] TrackNames = {
-			"01 Overworld Night",
-			"02 Eerie",
-			"03 Overworld Day",
-			"04 Boss 1",
-			"05 Title Screen",
-			"06 Jungle",
-			"07 Corruption",
-			"08 Hallow",
-			"09 Underground Corruption",
-			"10 Underground Hallow",
-			"11 Boss 2",
-			"12 Underground",
-			"13 Boss 3",
-			"14 Snow",
-			"15 Space",
-			"16 Crimson",
-			"17 Boss 4",
-			"18 Alt Overworld Day",
-			"19 Rain",
-			"20 Underground Snow",
-			"21 Desert",
-			"22 Ocean",
-			"23 Dungeon",
-			"24 Plantera",
-			"25 Boss 5",
-			"26 Temple",
-			"27 Eclipse",
-			"28 Rain Ambience",
-			"29 Mushrooms",
-			"30 Pumpkin Moon",
-			"31 Alt Underground",
-			"32 Frost Moon",
-			"33 Underground Crimson",
-			"34 Lunar Event",
-			"35 Pirate Invasion",
-			"36 Hell",
-			"37 Martian Madness",
-			"38 Moon Lord",
-			"39 Goblin Invasion",
-			"40 Sandstorm",
-			"41 Old One's Army"
+			"Music_1", // Overworld Day
+			"Music_2", // Eerie
+			"Music_3", // Night
+			"Music_4", // Underground
+			"Music_5", // Boss 1
+			"Music_6", // Title (Classic)
+			"Music_7", // Jungle
+			"Music_8", // Corruption
+			"Music_9", // Hallow
+			"Music_10", // Underground Corruption
+			"Music_11", // Underground Hallow
+			"Music_12", // Boss 2
+			"Music_13", // Boss 3
+			"Music_14", // Snow
+			"Music_15", // Space Night
+			"Music_16", // Crimson
+			"Music_17", // Boss 4
+			"Music_18", // Alt Overworld Day
+			"Music_19", // Rain
+			"Music_20", // Ice
+			"Music_21", // Desert
+			"Music_22", // Ocean Day
+			"Music_23", // Dungeon
+			"Music_24", // Plantera
+			"Music_25", // Boss 5
+			"Music_26", // Temple
+			"Music_27", // Solar Eclipse
+			"Music_28", // Rain Ambience
+			"Music_29", // Mushrooms
+			"Music_30", // Pumpkin Moon
+			"Music_31", // Alt Underground
+			"Music_32", // Frost Moon
+			"Music_33", // Underground Crimson
+			"Music_34", // The Towers
+			"Music_35", // Pirate Invasion
+			"Music_36", // Hell
+			"Music_37", // Martian Madness
+			"Music_38", // Lunar Boss
+			"Music_39", // Goblin Invasion
+			"Music_40", // Sandstorm
+			"Music_41", // Old One's Army
+			"Music_42", // Space Day
+			"Music_43", // Ocean Night
+			"Music_44", // Windy Day
+			"Music_45", // Wind Ambience
+			"Music_46", // Town Day
+			"Music_47", // Town Night
+			"Music_48", // Slime Rain
+			"Music_49", // Overworld Day Remix
+			"Music_50", // Journey's Beginning
+			"Music_51", // Journey's Beginning Loop
+			"Music_52", // Storm
+			"Music_53", // Graveyard
+			"Music_54", // Underground Jungle
+			"Music_55", // Jungle Night
+			"Music_56", // Queen Slime
+			"Music_57", // Empress of Light
+			"Music_58", // Duke Fishron
+			"Music_59", // Morning Rain
+			"Music_60", // Alt Title
+			"Music_61", // Underground Desert
+			"Music_62", // Otherworldly Rain
+			"Music_63", // Otherworldly Day
+			"Music_64", // Otherworldly Night
+			"Music_65", // Otherworldly Underground
+			"Music_66", // Otherworldly Desert
+			"Music_67", // Otherworldly Ocean
+			"Music_68", // Otherworldly Mushrooms
+			"Music_69", // Otherworldly Dungeon
+			"Music_70", // Otherworldly Space
+			"Music_71", // Otherworldly Underworld
+			"Music_72", // Otherworldly Snow
+			"Music_73", // Otherworldly Corruption
+			"Music_74", // Otherworldly Underground Corruption
+			"Music_75", // Otherworldly Crimson
+			"Music_76", // Otherworldly Underground Crimson
+			"Music_77", // Otherworldly Ice
+			"Music_78", // Otherworldly Underground Hallow
+			"Music_79", // Otherworldly Eerie
+			"Music_80", // Otherworldly Boss 2
+			"Music_81", // Otherworldly Boss 1
+			"Music_82", // Otherworldly Invasion
+			"Music_83", // Otherworldly The Towers
+			"Music_84", // Otherworldly Lunar Boss
+			"Music_85", // Otherworldly Plantera
+			"Music_86", // Otherworldly Jungle
+			"Music_87", // Otherworldly Wall of Flesh
+			"Music_88", // Otherworldly Hallow
+			"Music_89", // Journey's End
+			"Music_90", // Deerclops
+			"Music_91" // Aether
 		};
 
 		static XactExtractor() {
